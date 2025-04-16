@@ -11,23 +11,23 @@ export default function Features() {
 
   const features = [
     {
-      icon: <Laptop className="h-6 w-6 text-primary" />,
+      icon: <Laptop className="h-6 w-6 text-red-400" />,
       title: "Belajar Have Fun",
       description: "belajar programming dengan have fun",
     },
     {
-      icon: <Users className="h-6 w-6 text-primary" />,
+      icon: <Users className="h-6 w-6 text-red-400" />,
       title: "Komunitas Supportif",
       description:
         "Bergabunglah dengan komunitas developer madura yang siap membantu dan berbagi pengalaman.",
     },
     {
-      icon: <BookOpen className="h-6 w-6 text-primary" />,
+      icon: <BookOpen className="h-6 w-6 text-red-400" />,
       title: "Sharing",
       description: "share pengetahuan dan menerima pengetahuan",
     },
     {
-      icon: <Code className="h-6 w-6 text-primary" />,
+      icon: <Code className="h-6 w-6 text-red-400" />,
       title: "Problem Solve",
       description: "Jika ada masalah diskusikan dengan para ahli.",
     },

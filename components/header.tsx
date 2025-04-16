@@ -46,7 +46,7 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="" className="text-sm font-medium relative group">
+          <Link href="/" className="text-sm font-medium relative group">
             <span className="transition-colors hover:text-primary">
               Komunitas
             </span>
@@ -91,7 +91,7 @@ export default function Header() {
         <div className="md:hidden border-t bg-background/95 backdrop-blur-md">
           <nav className="container flex flex-col py-4 text-center">
             <Link
-              href="#komunitas"
+              href="/"
               className="py-3 text-sm font-medium border-b border-border/50"
               onClick={() => setMobileMenuOpen(false)}
             >

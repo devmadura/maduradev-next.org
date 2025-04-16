@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function CallToAction() {
   const ref = useRef(null);
@@ -41,19 +42,21 @@ export default function CallToAction() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
+                {/* <Button
                   size="lg"
-                  className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-400/90"
+                  className="bg-gradient-to-r from-primary to-blue-400 hover:from-red-600/90 hover:to-red-400/90"
                 >
                   Follow Instagram
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary hover:bg-primary/10"
-                >
-                  Join Telegram Group
-                </Button>
+                </Button> */}
+                <Link href="/telegram">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-primary hover:bg-primary/10"
+                  >
+                    Join Telegram Group
+                  </Button>
+                </Link>
               </div>
             </div>
 

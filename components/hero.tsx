@@ -122,8 +122,9 @@ export default function Hero() {
                   src="/bersama.png"
                   width={600}
                   height={500}
-                  alt="Logo MADURADEV"
+                  alt="foto keluarga besar maduradev"
                   className="w-full h-auto object-cover"
+                  priority
                 />
               </div>
             </div>

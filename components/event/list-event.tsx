@@ -21,7 +21,7 @@ export default function ListEvent() {
                     src={event.image}
                     height={300}
                     width={300}
-                    alt="event laravel"
+                    alt={event.title}
                     className="h-full"
                   />
                 </div>

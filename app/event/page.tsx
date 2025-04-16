@@ -13,7 +13,7 @@ export default function Event() {
 
   const resources = [
     {
-      icon: <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
+      icon: <BookOpen className="h-6 w-6 text-red-400 dark:text-blue-400" />,
       iconBg: "bg-blue-100 dark:bg-blue-900",
       title: "Bedah Buku",
       description: "Belajar Kesimpulan Dari sebuah Buku",
@@ -21,7 +21,7 @@ export default function Event() {
       color: "from-blue-500 to-blue-700",
     },
     {
-      icon: <Code className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
+      icon: <Code className="h-6 w-6 text-red-400 dark:text-blue-400" />,
       iconBg: "bg-blue-100 dark:bg-blue-900",
       title: "ngoding",
       description:
@@ -30,7 +30,7 @@ export default function Event() {
       color: "from-blue-500 to-blue-700",
     },
     {
-      icon: <Share2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
+      icon: <Share2 className="h-6 w-6 text-red-400 dark:text-blue-400" />,
       iconBg: "bg-blue-100 dark:bg-blue-900",
       title: "Sharing Session",
       description:

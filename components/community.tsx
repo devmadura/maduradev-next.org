@@ -15,15 +15,15 @@ export default function Community() {
   const communities = [
     {
       icon: <Facebook className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
-      iconBg: "bg-blue-100 dark:bg-blue-900",
+      iconBg: "bg-red-100 dark:bg-blue-900",
       title: "Facebook",
       description:
         "Ikuti Juga kami di facebook kami juga rutin membagikan informasi event atau hal-hal yang lain",
-      buttonText: "Gabung Sekarang",
+      buttonText: "Follow Kami",
       buttonLink: "/facebook",
     },
     {
-      icon: <Instagram className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
+      icon: <Instagram className="h-6 w-6 text-red-400 dark:text-blue-400" />,
       iconBg: "bg-blue-100 dark:bg-blue-900",
       title: "Instagram",
       description:

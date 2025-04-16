@@ -4,7 +4,7 @@ export const coreteam = [
     slug: "AB",
     desription:
       "Full-stack developer. Berbagi tips programming, inspirasi coding, dan event teknologi.",
-    instagram: "https://instagram.com/abrorilhuda",
+    instagram: "https://instagram.com/abror_dc",
     linkedin: "https://linkedin.com/in/moh-abroril-huda",
   },
   {
@@ -20,8 +20,23 @@ export const coreteam = [
     name: "Hasbullah",
     slug: "HS",
     desription: "Kuliah ",
-    instagram: "https://www.instagram.com/p/DD5zMxGysQs/?igsh=Z2F1MW9wcTkzbTFh",
+    instagram: "https://www.instagram.com/hasbullah_sd",
     linkedin:
       "https://www.linkedin.com/in/hasbullah-sd?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+  },
+  {
+    name: "Mahmud Riady",
+    slug: "MR",
+    desription:
+      "Saya Mahmud Riady, Full Stack Developer yang berpengalaman dalam mengembangkan aplikasi web dari front-end hingga back-end. Berpengalaman dalam teknologi seperti HTML, CSS, JavaScript, serta framework dan bahasa pemrograman back-end seperti Node.js, Python, atau PHP. Berkomitmen untuk menciptakan solusi yang efisien, skalabel, dan inovatif.",
+    instagram: "https://www.instagram.com/mahmud_riady_?igsh=amRpcnpsYTJoY3d2",
+    linkedin: "https://id.linkedin.com/in/mahmud-riady-490724360",
+  },
+  {
+    name: "Dofiri Santrie",
+    slug: "DS",
+    desription: "WordPress Enthusiast",
+    instagram: "http://instagram.com/dofirisantrie",
+    linkedin: "http://dofiri.santrie.com",
   },
 ];

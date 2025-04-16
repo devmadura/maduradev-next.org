@@ -87,7 +87,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/event"
+                  href="/events"
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   Event
@@ -95,7 +95,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/team"
+                  href="/teams"
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   Our Team

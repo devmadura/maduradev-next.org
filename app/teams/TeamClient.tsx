@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { coreteam } from "@/lib/coreteam";
 
-export default function OurTeam() {
+export default function TeamClient() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 

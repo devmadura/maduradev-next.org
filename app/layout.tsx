@@ -9,10 +9,32 @@ import Footer from "@/components/footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MaduraDev",
-  description: "Komunitas belajar programming dan developer",
-  icons: {
-    icon: "/favicon.ico",
+  title: {
+    default: "MaduraDev",
+    template: "%s - MaduraDev",
+  },
+  description: "Komunitas programming dan developer MaduraDev",
+  openGraph: {
+    title: "MaduraDev",
+    description: "Komunitas programming dan developer MaduraDev",
+    url: "https://maduradev.vercel.app",
+    siteName: "MaduraDev",
+    images: [
+      {
+        url: "https://maduradev.vercel.app/image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "MaduraDev",
+      },
+    ],
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MaduraDev",
+    description: "Komunitas programming dan developer MaduraDev",
+    images: ["https://maduradev.vercel.app/image.jpg"],
   },
 };
 

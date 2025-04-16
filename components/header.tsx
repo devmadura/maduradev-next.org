@@ -52,11 +52,11 @@ export default function Header() {
             </span>
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-400 transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="/event" className="text-sm font-medium relative group">
+          <Link href="/events" className="text-sm font-medium relative group">
             <span className="transition-colors hover:text-primary">Event</span>
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-400 transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="/team" className="text-sm font-medium relative group">
+          <Link href="/teams" className="text-sm font-medium relative group">
             <span className="transition-colors hover:text-primary">
               Our Team
             </span>
@@ -98,14 +98,14 @@ export default function Header() {
               Komunitas
             </Link>
             <Link
-              href="/event"
+              href="/events"
               className="py-3 text-sm font-medium border-b border-border/50"
               onClick={() => setMobileMenuOpen(false)}
             >
               Event
             </Link>
             <Link
-              href="/team"
+              href="/teams"
               className="py-3 text-sm font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >

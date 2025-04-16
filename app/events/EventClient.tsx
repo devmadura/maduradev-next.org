@@ -1,13 +1,12 @@
 "use client";
-
 import { useRef } from "react";
 import { useInView } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { BookOpen, Code, Share2, Video } from "lucide-react";
 import { motion } from "framer-motion";
 import ListEvent from "@/components/event/list-event";
+import type { Metadata } from "next";
 
-export default function Event() {
+export default function EventClient() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 

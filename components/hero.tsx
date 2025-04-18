@@ -72,9 +72,10 @@ export default function Hero() {
                 </span>
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                Temukan potensi programming Anda bersama komunitas yang
-                mendukung, tutorial interaktif, dan sumber daya berkualitas
-                tinggi.
+                MaduraDev adalah komunitas developer yang berbasis di Madura.
+                Kami hadir sebagai wadah bagi para pegiat IT lokal untuk
+                belajar, berbagi, dan berkolaborasi dalam membangun ekosistem
+                digital yang positif dan berkelanjutan di Madura.
               </p>
             </div>
 

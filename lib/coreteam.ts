@@ -2,8 +2,7 @@ export const coreteam = [
   {
     name: "Moh. Abroril Huda",
     slug: "AB",
-    desription:
-      "Full-stack developer. Berbagi tips programming, inspirasi coding, dan event teknologi.",
+    desription: "Full-stack developer. Lead MaduraDev and stack Developer",
     instagram: "https://instagram.com/abror_dc",
     linkedin: "https://linkedin.com/in/moh-abroril-huda",
   },
@@ -19,7 +18,7 @@ export const coreteam = [
   {
     name: "Hasbullah",
     slug: "HS",
-    desription: "Kuliah ",
+    desription: "Kuliah di Universitas Madura",
     instagram: "https://www.instagram.com/hasbullah_sd",
     linkedin:
       "https://www.linkedin.com/in/hasbullah-sd?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
@@ -38,5 +37,13 @@ export const coreteam = [
     desription: "WordPress Enthusiast",
     instagram: "http://instagram.com/dofirisantrie",
     linkedin: "http://dofiri.santrie.com",
+  },
+  {
+    name: "Samsul Arifin",
+    slug: "SA",
+    desription:
+      "Selain Fokus sebagai Content Writer juga mempunyai pengalaman sebagai Front End dan Back Developer.",
+    instagram: "https://www.instagram.com/kaifa_kafa/",
+    linkedin: "https://www.linkedin.com/in/samsul-arifin-6215392a8",
   },
 ];

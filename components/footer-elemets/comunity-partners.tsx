@@ -10,6 +10,7 @@ export default function ComunityPathners() {
           <li key={i}>
             <Link
               href={partner.link}
+              target="_blank"
               className="text-sm text-muted-foreground hover:text-foreground"
             >
               {partner.name}

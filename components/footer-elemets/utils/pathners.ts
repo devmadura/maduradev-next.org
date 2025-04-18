@@ -1,22 +1,22 @@
 export const partners = [
   {
-    link: "#",
+    link: "https://www.instagram.com/bangkalan.dev/",
     name: "BangkalanDev",
   },
   {
-    link: "#",
+    link: "https://www.instagram.com/sampangdev_/",
     name: "SampangDev",
   },
   {
-    link: "#",
+    link: "https://www.instagram.com/pamekasandev/",
     name: "PamekasanDev",
   },
   {
-    link: "#",
+    link: "https://www.instagram.com/sumenepdev/",
     name: "SumenepDev",
   },
   {
-    link: "#",
+    link: "https://www.instagram.com/dcsquatit/",
     name: "Demtimcod",
   },
 ];

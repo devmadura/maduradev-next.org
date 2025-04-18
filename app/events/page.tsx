@@ -2,8 +2,8 @@ import EventClient from "./EventClient";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Event",
-  description: "semua list event maduradev",
+  title: "Events",
+  description: "semua list event MaduraDev",
 };
 export default function Event() {
   return <EventClient />;

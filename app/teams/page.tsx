@@ -2,7 +2,7 @@ import TeamClient from "./TeamClient";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Core Team",
+  title: "Core Teams",
   description: "core team MaduraDev",
 };
 

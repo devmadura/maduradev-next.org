@@ -5,7 +5,8 @@ export default function Robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/events", "/teams"],
+        allow: ["/"],
+        disallow: ["/instagram", "/telegram", "/facebook"],
       },
     ],
     sitemap: `${process.env.NEXT_URL_PUBLISH}/sitemap.xml`,

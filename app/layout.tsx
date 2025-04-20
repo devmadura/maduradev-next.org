@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   description: "Komunitas programming dan developer MaduraDev",
   verification: {
-    google: 'xLU-lWej9jGaICu_sTbxHq7FF2A9boZiKeDplpFNTeA',
+    google: 'b0k0d5NR46JBjf89O9_qmNRBb_fKEb8nC4Vx0kBeEyQ',
   },
   openGraph: {
     title: "MaduraDev",

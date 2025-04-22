@@ -4,19 +4,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
 import { Menu, X } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import ImageLogo from "./shared/logo-image";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { theme } = useTheme();
-
-  const logo_light = "/logos/logo_madura.png";
-  const logo_dark = "/logos/logo_madura_light.png";
-  const imgUrl = theme === "light" ? logo_light : logo_dark;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,17 +31,7 @@ export default function Header() {
     >
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="relative overflow-hidden rounded">
-            <Link href="/">
-              <Image
-                src={imgUrl}
-                alt="MaduraDev Logo"
-                width={64}
-                height={64}
-                className="object-cover"
-              />
-            </Link>
-          </div>
+          <ImageLogo />
         </div>
 
         {/* Desktop Navigation */}

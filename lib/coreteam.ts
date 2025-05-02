@@ -1,14 +1,12 @@
 export const coreteam = [
   {
     name: "Moh. Abroril Huda",
-    slug: "AB",
     desription: "Full-stack developer. Lead MaduraDev and stack Developer",
     instagram: "https://instagram.com/abror_dc",
     linkedin: "https://linkedin.com/in/moh-abroril-huda",
   },
   {
     name: "M. Lutfi Agung",
-    slug: "LA",
     desription:
       "Mahasiswa semester 4 di Institut teknologi dan bisnis digital Ummul Quro (ITB-UQ) prodi Sistem Informasi, fokus dibidang Design UI/UX dan network security.",
     instagram: "https://www.instagram.com/ltf_fyy?igsh=YmF2dXpkc2NkM2ow",
@@ -17,7 +15,6 @@ export const coreteam = [
   },
   {
     name: "Hasbullah",
-    slug: "HS",
     desription: "Kuliah di Universitas Madura",
     instagram: "https://www.instagram.com/hasbullah_sd",
     linkedin:
@@ -25,7 +22,6 @@ export const coreteam = [
   },
   {
     name: "Mahmud Riady",
-    slug: "MR",
     desription:
       "Saya Mahmud Riady, Full Stack Developer yang berpengalaman dalam mengembangkan aplikasi web dari front-end hingga back-end. Berpengalaman dalam teknologi seperti HTML, CSS, JavaScript, serta framework dan bahasa pemrograman back-end seperti Node.js, Python, atau PHP. Berkomitmen untuk menciptakan solusi yang efisien, skalabel, dan inovatif.",
     instagram: "https://www.instagram.com/mahmud_riady_?igsh=amRpcnpsYTJoY3d2",
@@ -33,14 +29,12 @@ export const coreteam = [
   },
   {
     name: "Dofiri Santrie",
-    slug: "DS",
     desription: "WordPress Enthusiast",
     instagram: "http://instagram.com/dofirisantrie",
     linkedin: "http://dofiri.santrie.com",
   },
   {
     name: "Samsul Arifin",
-    slug: "SA",
     desription:
       "Selain Fokus sebagai Content Writer juga mempunyai pengalaman sebagai Front End dan Back Developer.",
     instagram: "https://www.instagram.com/kaifa_kafa/",

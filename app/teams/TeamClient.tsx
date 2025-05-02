@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { coreteam } from "@/lib/coreteam";
+import { getPlaceholderAvatarUrl } from "@/lib/placeholder";
 
 export default function TeamClient() {
   const ref = useRef(null);
@@ -81,8 +82,14 @@ export default function TeamClient() {
               <Card className="w-full max-w-sm mx-auto text-center p-6 rounded-2xl shadow-md">
                 <CardContent>
                   <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xl font-semibold">
-                      {team.slug}
+                    <div className="w-16 h-16 flex items-center justify-center">
+                      <Image
+                        className="rounded-full"
+                        src={getPlaceholderAvatarUrl(team.name)}
+                        alt={team.name}
+                        width={200}
+                        height={200}
+                      />
                     </div>
                   </div>
                   <h2 className="text-xl font-semibold mb-2">{team.name}</h2>

@@ -157,7 +157,12 @@ export default function Footer() {
           </p>
         </div>
         <p className="text-center text-xs">
-          maduradev website in open <b>opensource</b>
+          maduradev website in open{" "}
+          <b>
+            <Link href={"https://github.com/maduradevcommunity"}>
+              opensource
+            </Link>
+          </b>
         </p>
       </div>
     </footer>

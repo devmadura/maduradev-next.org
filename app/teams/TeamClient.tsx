@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Facebook, MessageCircle, Linkedin, Instagram } from "lucide-react";
+import { Linkedin, Instagram } from "lucide-react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
@@ -92,7 +92,10 @@ export default function TeamClient() {
                       />
                     </div>
                   </div>
-                  <h2 className="text-xl font-semibold mb-2">{team.name}</h2>
+                  <h2 className="text-xl font-semibold">{team.name}</h2>
+                  <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/10 dark:bg-orange-900/30 dark:text-orange-400 dark:ring-orange-400/20">
+                    {team.position}
+                  </span>
                   <p className="text-sm text-gray-500 mb-4">
                     {team.desription}
                   </p>

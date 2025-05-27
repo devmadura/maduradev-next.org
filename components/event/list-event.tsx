@@ -15,8 +15,11 @@ export default function ListEvent() {
             <div className="relative h-64 md:h-auto">
               <div className="absolute inset-0 bg-gradient-to-br from-background/20 to-blue-400/20" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors">
-                  {/* <div className="w-5 h-5 border-t-8 border-t-transparent border-l-12 border-l-primary border-b-8 border-b-transparent ml-1" /> */}
+                {/* <div className="w-5 h-5 border-t-8 border-t-transparent border-l-12 border-l-primary border-b-8 border-b-transparent ml-1" /> */}
+                <Link
+                  href={`/events/${event.slug}`}
+                  className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors"
+                >
                   <Image
                     src={event.image}
                     height={300}
@@ -24,7 +27,7 @@ export default function ListEvent() {
                     alt={event.title}
                     className="h-full"
                   />
-                </div>
+                </Link>
               </div>
             </div>
             <div className="p-8 md:p-12 flex flex-col justify-center">

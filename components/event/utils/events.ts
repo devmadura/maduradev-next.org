@@ -35,4 +35,16 @@ export const events: eventType[] = [
       "Acara ini ditujukan untuk kamu yang ingin mulai belajar Laravel, salah satu framework PHP paling populer dan powerful saat ini. Kita akan membahas konsep dasar Laravel mulai dari instalasi, routing, controller, blade templating, hingga koneksi ke database.",
     tanggal: "11 08 2025",
   },
+  {
+    id: 3,
+    image: "events/example.jpg",
+    url: "#",
+    online: false,
+    new: true,
+    title: "Baner Frontend Testing",
+    slug: "baner-frontend-testing",
+    description:
+      "In the version of Next.js that issued this warning, access to these properties is still possible directly but will warn. In future versions, these APIs will be async and direct access will not work as expected. <code>const data = 5 > 1 ? true : false<code>",
+    tanggal: "11 08 2025",
+  },
 ];

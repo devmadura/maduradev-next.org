@@ -15,16 +15,16 @@ export const metadata: Metadata = {
   },
   description: "Komunitas programming dan developer MaduraDev",
   verification: {
-    google: 'b0k0d5NR46JBjf89O9_qmNRBb_fKEb8nC4Vx0kBeEyQ',
+    google: "b0k0d5NR46JBjf89O9_qmNRBb_fKEb8nC4Vx0kBeEyQ",
   },
   openGraph: {
     title: "MaduraDev",
     description: "Komunitas programming dan developer MaduraDev",
-    url: "https://maduradev.vercel.app",
+    url: `${process.env.NEXT_URL_PUBLISH}`,
     siteName: "MaduraDev",
     images: [
       {
-        url: "https://maduradev.vercel.app/image.jpg",
+        url: `${process.env.NEXT_URL_PUBLISH}/image.jpg`,
         width: 1200,
         height: 630,
         alt: "MaduraDev",
@@ -37,8 +37,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MaduraDev",
     description: "Komunitas programming dan developer MaduraDev",
-    images: ["https://maduradev.vercel.app/image.jpg"],
+    images: [`${process.env.NEXT_URL_PUBLISH}/image.jpg`],
   },
+  metadataBase: new URL(`${process.env.NEXT_URL_PUBLISH}`),
 };
 
 export default function RootLayout({

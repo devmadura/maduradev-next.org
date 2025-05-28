@@ -1,25 +1,57 @@
-"use client";
-import { useParams } from "next/navigation";
-import { events, eventType } from "@/components/event/utils/events";
-import { useState, useEffect } from "react";
-export default function MyComponent() {
-  const { slug } = useParams();
-  const [data, setData] = useState<eventType | null>(null);
-  useEffect(() => {
-    if (slug) {
-      const foundEvent = events.find((event) => event.slug === slug);
-      setData(foundEvent ?? null);
-    }
-  }, [slug]);
+import { Metadata } from "next";
+import { getEvent } from "@/lib/event";
+import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-  if (!data) return <div>Event tidak ditemukan atau sedang dimuat...</div>;
+interface PageParams {
+  params: Promise<{ slug: string }>;
+}
+
+// generate metadata
+export async function generateMetadata({
+  params,
+}: PageParams): Promise<Metadata> {
+  const { slug } = await params;
+  const event = await getEvent(slug);
+  if (!event) {
+    return {
+      title: "Event tidak ditemukan",
+      description: "Event yang kamu cari tidak tersedia.",
+    };
+  }
+
+  return {
+    title: `${event.title}`,
+    description: event.description,
+    openGraph: {
+      title: event.title,
+      description: event.description,
+      images: [event.image],
+      url: `${process.env.NEXT_URL_PUBLISH}/${event.slug}`,
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: event.title,
+      description: event.description,
+      images: [event.image],
+    },
+  };
+}
+
+export default async function detailEvet({ params }: PageParams) {
+  const { slug } = await params;
+  const event = await getEvent(slug);
+
+  if (!event) return notFound();
 
   return (
     <div className="max-w-3xl mx-auto bg-background overflow-hidden">
       {/* Gambar */}
       <div className="w-full">
         <img
-          src={`/${data.image}`}
+          src={`/${event.image}`}
           alt="as"
           className="w-full h-auto object-cover"
         />
@@ -28,21 +60,20 @@ export default function MyComponent() {
       {/* Konten */}
       <div className="p-6 space-y-4">
         {/* Judul */}
-        <h1 className="text-4xl font-bold ">{data.title}</h1>
-
+        <h1 className="text-4xl font-bold ">{event.title}</h1>
         {/* Subjudul */}
-        <p className="text-lg font-medium ">{data.description}</p>
+        <p className="text-lg font-medium ">{event.description}</p>
 
         {/* Informasi detail */}
         <div className="bg-background border rounded-lg p-4 space-y-2 text-sm">
           <p>
-            <strong>Date</strong> {data.tanggal}
+            <strong>Date:</strong> {event.tanggal}
           </p>
           <p>
             <strong>Format:</strong> Workshop
           </p>
           <p>
-            <strong>Category:</strong> {data.online ? "Online" : "Offline"}
+            <strong>Category:</strong> {event.online ? "Online" : "Offline"}
           </p>
           <p>
             <strong>Location:</strong>{" "}
@@ -56,17 +87,13 @@ export default function MyComponent() {
             </a>
           </p>
         </div>
-
         {/* Deskripsi panjang */}
-        {/* <div className="prose max-w-none text-gray-800">
-          <p>✨</p>
-          <p>
-            📣 BandungDev akan mengadakan Event <strong>title</strong>!
-          </p>
-          <p>
-           dd
-          </p>
-        </div> */}
+        <div className="prose max-w-none">
+          <div dangerouslySetInnerHTML={{ __html: event.description }} />
+        </div>
+        <Button className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-400/90">
+          <Link href={event.url}>Daftar</Link>
+        </Button>
       </div>
     </div>
   );

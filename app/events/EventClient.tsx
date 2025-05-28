@@ -4,7 +4,6 @@ import { useInView } from "framer-motion";
 import { BookOpen, Code, Share2, Video } from "lucide-react";
 import { motion } from "framer-motion";
 import ListEvent from "@/components/event/list-event";
-import type { Metadata } from "next";
 
 export default function EventClient() {
   const ref = useRef(null);

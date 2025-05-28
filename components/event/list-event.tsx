@@ -37,7 +37,9 @@ export default function ListEvent() {
               <h3 className="text-2xl md:text-3xl font-bold mb-4">
                 {event.title}
               </h3>
-              <p className="text-muted-foreground mb-6">{event.description}</p>
+              <p className="text-muted-foreground mb-6">
+                {event.description.slice(0, 200)}...
+              </p>
               <div className="flex flex-wrap gap-2 mb-2">
                 <span
                   className={`inline-flex items-center rounded-md ${event.online ? "bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/10 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-400/20" : "bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/10 dark:bg-orange-900/30 dark:text-orange-400 dark:ring-orange-400/20"}  `}
@@ -47,7 +49,7 @@ export default function ListEvent() {
               </div>
               <div className="flex flex-wrap gap-4">
                 <Button className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-400/90">
-                  <Link href={event.url}>Daftar</Link>
+                  <Link href={`/events/${event.slug}`}>Detail</Link>
                 </Button>
                 <Button variant="outline" disabled>
                   <Calendar className="me-1" /> {event.tanggal}

@@ -23,10 +23,10 @@ export async function generateMetadata({
 
   return {
     title: `${event.title}`,
-    description: event.description,
+    description: event.description_small,
     openGraph: {
       title: event.title,
-      description: event.description,
+      description: event.description_small,
       images: [event.image],
       url: `${process.env.NEXT_URL_PUBLISH}/${event.slug}`,
       type: "article",
@@ -34,7 +34,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: event.title,
-      description: event.description,
+      description: event.description_small,
       images: [event.image],
     },
   };

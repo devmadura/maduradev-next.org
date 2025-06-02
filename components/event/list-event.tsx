@@ -38,7 +38,7 @@ export default function ListEvent() {
                 {event.title}
               </h3>
               <p className="text-muted-foreground mb-6">
-                {event.description.slice(0, 200)}...
+                {event.description_small}
               </p>
               <div className="flex flex-wrap gap-2 mb-2">
                 <span

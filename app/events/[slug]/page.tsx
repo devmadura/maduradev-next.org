@@ -62,7 +62,7 @@ export default async function detailEvet({ params }: PageParams) {
         {/* Judul */}
         <h1 className="text-4xl font-bold ">{event.title}</h1>
         {/* Subjudul */}
-        <p className="text-lg font-medium ">{event.description}</p>
+        <p className="text-lg font-medium ">{event.description_small}</p>
 
         {/* Informasi detail */}
         <div className="bg-background border rounded-lg p-4 space-y-2 text-sm">
@@ -70,7 +70,7 @@ export default async function detailEvet({ params }: PageParams) {
             <strong>Date:</strong> {event.tanggal}
           </p>
           <p>
-            <strong>Format:</strong> Workshop
+            <strong>Format:</strong> {event.format}
           </p>
           <p>
             <strong>Category:</strong> {event.online ? "Online" : "Offline"}
@@ -83,7 +83,7 @@ export default async function detailEvet({ params }: PageParams) {
               rel="noopener noreferrer"
               className="text-blue-600 underline"
             >
-              madura
+              {event.location}
             </a>
           </p>
         </div>

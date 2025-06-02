@@ -6,45 +6,33 @@ export type eventType = {
   new: boolean;
   title: string;
   slug: string;
+  format: "workshop" | "bincang-bincang" | "bootcamp" | "webinar";
+  description_small: string;
   description: string;
+  location: string;
   tanggal: string;
 };
 
 export const events: eventType[] = [
   {
     id: 1,
-    image: "events/even.jpg",
-    url: "#",
-    online: true,
-    new: true,
-    title: "Bedah Buku Atomic Habits",
-    slug: "bedah-buku-atomic-habits",
-    description:
-      "Mari bergabung dalam acara Bedah Buku: Atomic Habits untuk menggali lebih dalam konsep membangun kebiasaan kecil yang dapat membawa perubahan besar dalam hidup.",
-    tanggal: "22 08 2025",
-  },
-  {
-    id: 2,
-    image: "events/event.jpeg",
-    url: "#",
-    online: false,
-    new: false,
-    title: "Yuk gabung di Meetup Belajar Laravel Dasar! 🚀",
-    slug: "yuk-gabung-di-meetup-belejar-laravel-dasar",
-    description:
-      "Acara ini ditujukan untuk kamu yang ingin mulai belajar Laravel, salah satu framework PHP paling populer dan powerful saat ini. Kita akan membahas konsep dasar Laravel mulai dari instalasi, routing, controller, blade templating, hingga koneksi ke database.",
-    tanggal: "11 08 2025",
-  },
-  {
-    id: 3,
-    image: "events/example.jpg",
+    image: "events/ngopi.jpeg",
     url: "#",
     online: false,
     new: true,
-    title: "Baner Frontend Testing",
-    slug: "baner-frontend-testing",
-    description:
-      "In the version of Next.js that issued this warning, access to these properties is still possible directly but will warn. In future versions, these APIs will be async and direct access will not work as expected. <code>const data = 5 > 1 ? true : false<code>",
-    tanggal: "11 08 2025",
+    title: "☕ Ngopi Bareng Madura Dev: Pembagian Kaos dan Bincang Santai!",
+    slug: "ngopi-bareng-madura-dev-pembagian-kaos-dan-bincang-santai",
+    format: "bincang-bincang",
+    description_small:
+      "Halo para developer Madura! Ada kabar gembira nih! Kami mengundang kalian semua untuk acara 'Ngopi Bareng Madura Dev' yang akan lebih spesial kali ini. Selain mempererat silaturahmi, kita juga akan mengadakan pembagian kaos resmi Madura Dev untuk kalian yang sudah terdaftar.",
+    description: `
+    <p style="margin-bottom: 10px">Selain itu, kita akan menikmati sesi bincang-bincang santai seputar dunia pengembangan, tren teknologi terkini, dan berbagai ide inovatif yang bisa kita kembangkan bersama. Ini adalah wadah sempurna untuk berbagi pengalaman, mencari solusi atas tantangan yang mungkin sedang kalian hadapi, atau bahkan menemukan partner untuk proyek impian.</p>
+
+    <p style="margin-bottom: 10px">Mari manfaatkan kesempatan ini untuk memperluas jaringan, berinteraksi langsung dengan sesama developer, dan membangun komunitas teknologi Madura yang lebih solid dan inspiratif. Tentu saja, semua ini akan ditemani secangkir kopi hangat yang akan membuat suasana semakin akrab.</p>
+
+    <h2><b>Hadir Kappi Tretan 💯</b></h2>
+    `,
+    location: "untuk tempat menyusul",
+    tanggal: "04 06 2025, malam kamis",
   },
 ];

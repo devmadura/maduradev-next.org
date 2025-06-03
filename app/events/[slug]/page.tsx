@@ -70,6 +70,9 @@ export default async function detailEvet({ params }: PageParams) {
             <strong>Date:</strong> {event.tanggal}
           </p>
           <p>
+            <strong>Time:</strong> {event.waktu}
+          </p>
+          <p>
             <strong>Format:</strong> {event.format}
           </p>
           <p>
@@ -77,14 +80,7 @@ export default async function detailEvet({ params }: PageParams) {
           </p>
           <p>
             <strong>Location:</strong>{" "}
-            <a
-              href="#"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline"
-            >
-              {event.location}
-            </a>
+            <span dangerouslySetInnerHTML={{ __html: event.location }} />
           </p>
         </div>
         {/* Deskripsi panjang */}

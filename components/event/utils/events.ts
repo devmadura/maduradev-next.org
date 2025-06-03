@@ -11,6 +11,7 @@ export type eventType = {
   description: string;
   location: string;
   tanggal: string;
+  waktu: string;
 };
 
 export const events: eventType[] = [
@@ -32,7 +33,9 @@ export const events: eventType[] = [
 
     <h2><b>Hadir Kappi Tretan 💯</b></h2>
     `,
-    location: "untuk tempat menyusul",
+    location:
+      "<a href='https://maps.app.goo.gl/ZWJqVjvtJSUCA68G7' target='_blank' style='text-decoration: underline'>SINGGA BATU CAFE & RESTO, Panggung, Barurambat Tim., Kec. Pademawu, Kabupaten Pamekasan, Jawa Timur 69321</a>",
     tanggal: "04 06 2025, malam kamis",
+    waktu: "18:00 - selesai",
   },
 ];

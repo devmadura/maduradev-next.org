@@ -17,10 +17,37 @@ export type eventType = {
 export const events: eventType[] = [
   {
     id: 1,
+    image: "events/io.png",
+    url: "https://s.id/googleiox-sby-25",
+    online: false,
+    new: true,
+    title: "Google I/O Extended Surabaya",
+    slug: "google-io-extended-surabaya",
+    format: "webinar",
+    description_small:
+      "Google I/O Extended Surabaya merupakan acara tahunan yang diselenggarakan oleh Google Developer Groups (GDG) Surabaya.",
+    description: `
+    <p>The moment you've been waiting for is here! 🎉</p>
+    <p>Registration for Google I/O Extended Surabaya is now OFFICIALLY OPEN!</p>
+    <p>👇 Here’s how to secure your spot:</p>
+    <p>🔗 Go to <a href="https://s.id/googleiox-sby-25">s.id/googleiox-sby-25</a> or scan the QR code on the second slide to fill out the interest form.</p>
+    <p>📩 Check your email! Keep an eye on your inbox! If you are selected, you will receive a confirmation email from our team with the next steps.</p>
+    <p>✅ Pay commitment fee to confirm your seat, a commitment fee of IDR 50K is required.</p>
+    <p>🎉 Congrats you’re in! Once your payment is confirmed, you are officially registered to join us.</p>
+    <p>Tag your friends who can't miss this! We can't wait to see you there! 🙌🏻</p>
+    <p style="color: blue">#GoogleIOExtended #IOExtendedSurabaya #GDGSurabaya #RegistrationOpen #SurabayaEvent #TechEvent #DeveloperCommunity #InfoSurabaya #AcaraTeknologi</p>
+    `,
+    location:
+      "<a href='https://maps.app.goo.gl/7aK4dsCYVyg95J3m7' target='_blank' style='text-decoration: underline'>Yarra ballroom by IKADO Surabaya No.3 Jalan pattimura, Surabaya</a>",
+    tanggal: "Saturday, 19 July 2025",
+    waktu: "8:00 - 18:00 WIB",
+  },
+  {
+    id: 2,
     image: "events/ngopi.jpeg",
     url: "#",
     online: false,
-    new: true,
+    new: false,
     title: "☕ Ngopi Bareng Madura Dev: Pembagian Kaos dan Bincang Santai!",
     slug: "ngopi-bareng-madura-dev-pembagian-kaos-dan-bincang-santai",
     format: "bincang-bincang",

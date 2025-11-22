@@ -18,7 +18,7 @@ export const events: eventType[] = [
   {
     id: 1,
     image: "events/devfest.png",
-    url: "devfest.gdgsurabaya.com",
+    url: "https://devfest.gdgsurabaya.com",
     online: false,
     new: true,
     title: "DevFest 2025 Surabaya",

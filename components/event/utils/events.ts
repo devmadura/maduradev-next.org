@@ -17,10 +17,43 @@ export type eventType = {
 export const events: eventType[] = [
   {
     id: 1,
+    image: "events/devfest.png",
+    url: "devfest.gdgsurabaya.com",
+    online: false,
+    new: true,
+    title: "DevFest 2025 Surabaya",
+    slug: "devfest-2025-surabaya",
+    format: "webinar",
+    description_small:
+      "DevFest Google adalah konferensi teknologi tahunan bergengsi yang diselenggarakan oleh Google Developer Groups (GDG) di seluruh dunia kebetulan sekarang di selenggarakan di GDG Surabaya",
+    description: `
+    <p>🚀 CALLING ALL DEVELOPERS & TECH INNOVATORS! 🚀</p>
+    <p>The wait is OVER! DevFest 2025 Surabaya registration is officially OPEN and we’re ready to AmplifiAI your code! 💻✨</p>
+    <p>Get ready for an electrifying day packed with:</p>
+    <ul>
+    <li>🔥 Cutting-edge tech talks</li>
+    <li>🎯 Hands-on workshops</li>
+    <li>🤝 Amazing networking opportunities</li>
+    <li>🎪 Interactive developer games</li>
+    <li>💡 AI & ML innovations</li>
+    </ul>
+    <p>Don’t miss this incredible opportunity to connect with fellow developers, learn from industry experts, and level up your coding game! 🎮</p>
+    <p>🎟️ REGISTER NOW at: devfest.gdgsurabaya.com</p>
+    <p>Limited spots available - secure yours before they’re gone! ⚡</p>
+    <p>Brought to you by Google Developer Groups Surabaya, AI/ML Surabaya, and Flutter Surabaya 🎉</p>
+    <p style="color: blue">#DevFestSurabaya2025 #AmplifiAIYourCode #GDGSurabaya #AISurabaya #FlutterSurabaya #TechCommunity #DeveloperEvent #SurabayaTech #GoogleDevelopers #DevFest2025 #CodingCommunity</p>
+    `,
+    location:
+      "<a href='https://maps.app.goo.gl/7aK4dsCYVyg95J3m7' target='_blank' style='text-decoration: underline'>Yarra ballroom by IKADO Surabaya No.3 Jalan pattimura, Surabaya</a>",
+    tanggal: "December 6, 2025",
+    waktu: "09:00 - 16:00 WIB",
+  },
+  {
+    id: 2,
     image: "events/io.png",
     url: "https://s.id/googleiox-sby-25",
     online: false,
-    new: true,
+    new: false,
     title: "Google I/O Extended Surabaya",
     slug: "google-io-extended-surabaya",
     format: "webinar",
@@ -43,7 +76,7 @@ export const events: eventType[] = [
     waktu: "8:00 - 18:00 WIB",
   },
   {
-    id: 2,
+    id: 3,
     image: "events/ngopi.jpeg",
     url: "#",
     online: false,

@@ -3,8 +3,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,7 +37,7 @@ export const metadata: Metadata = {
     description: "Komunitas programming dan developer MaduraDev",
     images: [`${process.env.NEXT_URL_PUBLISH}/image.jpg`],
   },
-  metadataBase: new URL(`${process.env.NEXT_URL_PUBLISH}`),
+  metadataBase: new URL(process.env.NEXT_URL_PUBLISH || "https://madura.dev"),
 };
 
 export default function RootLayout({
@@ -56,11 +54,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            {children}
-            <Footer />
-          </div>
+          {children}
         </ThemeProvider>
       </body>
     </html>

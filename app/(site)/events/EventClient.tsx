@@ -1,9 +1,8 @@
 "use client";
-import { useRef } from "react";
+import { useRef, Suspense } from "react";
 import { useInView } from "framer-motion";
-import { BookOpen, Code, Share2, Video } from "lucide-react";
+import { BookOpen, Code, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
-import ListEvent from "@/components/event/list-event";
 
 export default function EventClient() {
   const ref = useRef(null);
@@ -126,14 +125,7 @@ export default function EventClient() {
           ))}
         </motion.div>
 
-        {/* Featured Resource */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <ListEvent />
-        </motion.div>
+        {/* Featured Resource - moved to page.tsx as server component */}
       </div>
     </section>
   );

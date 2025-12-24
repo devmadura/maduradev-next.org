@@ -1,15 +1,25 @@
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
-import { events } from "./utils/events";
 import Link from "next/link";
-export default function ListEvent() {
+import { getAllEvents, type EventDisplay } from "@/lib/event";
+
+export default async function ListEvent() {
+  const events = await getAllEvents();
+
+  if (events.length === 0) {
+    return (
+      <div className="mt-10 rounded-xl border bg-background/50 backdrop-blur-sm p-12 text-center">
+        <p className="text-muted-foreground">Belum ada event</p>
+      </div>
+    );
+  }
+
   return (
     <>
-      {events.map((event, i) => (
+      {events.map((event) => (
         <div
           className="mt-10 rounded-xl overflow-hidden border bg-background/50 backdrop-blur-sm"
-          key={i}
+          key={event.id}
         >
           <div className="grid md:grid-cols-2 gap-0">
             <div className="relative h-64 md:h-auto">
@@ -20,12 +30,10 @@ export default function ListEvent() {
                   href={`/events/${event.slug}`}
                   className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors"
                 >
-                  <Image
-                    src={event.image}
-                    height={300}
-                    width={300}
+                  <img
+                    src={event.image.startsWith("http") ? event.image : `/${event.image}`}
                     alt={event.title}
-                    className="h-full"
+                    className="h-full max-h-64 object-contain"
                   />
                 </Link>
               </div>

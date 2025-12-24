@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Calendar,
-  Home,
-  Settings,
-  Users,
-  LogOut,
-} from "lucide-react";
+import { Calendar, Home, Settings, Users, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import ImageLogo from "../shared/logo-image";
 
 const menuItems = [
   {
@@ -63,8 +58,8 @@ export function DashboardSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold">
-            M
+          <div className="flex h-8 w-8 items-center justify-center pt-4">
+            <ImageLogo />
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-sm">MaduraDev</span>

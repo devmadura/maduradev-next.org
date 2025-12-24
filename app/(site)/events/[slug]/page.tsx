@@ -88,7 +88,9 @@ export default async function detailEvet({ params }: PageParams) {
           <div dangerouslySetInnerHTML={{ __html: event.description }} />
         </div>
         <Button className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-400/90">
-          <Link href={event.url}>Daftar</Link>
+          <Link href={event.url} target="_blank" rel="noopener noreferrer">
+            Daftar
+          </Link>
         </Button>
       </div>
     </div>

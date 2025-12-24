@@ -4,14 +4,17 @@ import { useRef } from "react";
 import { useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Linkedin, Instagram } from "lucide-react";
-import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { coreteam } from "@/lib/coreteam";
 import { getPlaceholderAvatarUrl } from "@/lib/placeholder";
+import type { CoreTeam } from "@/lib/supabase/types";
 
-export default function TeamClient() {
+interface TeamClientProps {
+  members: CoreTeam[];
+}
+
+export default function TeamClient({ members }: TeamClientProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
@@ -71,9 +74,9 @@ export default function TeamClient() {
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
         >
-          {coreteam.map((team, index) => (
+          {members.map((member) => (
             <motion.div
-              key={index}
+              key={member.id}
               className="group relative overflow-hidden rounded-xl border bg-background p-6 transition-all hover:shadow-xl"
               variants={itemVariants}
             >
@@ -83,41 +86,43 @@ export default function TeamClient() {
                 <CardContent>
                   <div className="flex justify-center mb-4">
                     <div className="w-16 h-16 flex items-center justify-center">
-                      <Image
-                        className="rounded-full"
-                        src={getPlaceholderAvatarUrl(team.name)}
-                        alt={team.name}
-                        width={200}
-                        height={200}
+                      <img
+                        className="rounded-full w-full h-full object-cover"
+                        src={member.avatar_url || getPlaceholderAvatarUrl(member.name)}
+                        alt={member.name}
                       />
                     </div>
                   </div>
-                  <h2 className="text-xl font-semibold">{team.name}</h2>
+                  <h2 className="text-xl font-semibold">{member.name}</h2>
                   <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/10 dark:bg-orange-900/30 dark:text-orange-400 dark:ring-orange-400/20">
-                    {team.position}
+                    {member.position}
                   </span>
                   <p className="text-sm text-gray-500 mb-4">
-                    {team.desription}
+                    {member.description || ""}
                   </p>
                   <div className="flex flex-wrap justify-center gap-2">
-                    <Link href={team.linkedin} className="cursor-pointer">
-                      <Button
-                        variant="outline"
-                        className="gap-2 bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-400/90 transition-all duration-300 text-white"
-                      >
-                        <Linkedin className="w-4 h-4" />
-                        LinkedIn
-                      </Button>
-                    </Link>
-                    <Link href={team.instagram}>
-                      <Button
-                        variant="outline"
-                        className="gap-2 bg-gradient-to-r from-primary to-red-400 hover:from-red-500/90 hover:to-red-400/90 transition-all duration-300 text-white"
-                      >
-                        <Instagram className="w-4 h-4" />
-                        Instagram
-                      </Button>
-                    </Link>
+                    {member.linkedin && (
+                      <Link href={member.linkedin} className="cursor-pointer">
+                        <Button
+                          variant="outline"
+                          className="gap-2 bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-400/90 transition-all duration-300 text-white"
+                        >
+                          <Linkedin className="w-4 h-4" />
+                          LinkedIn
+                        </Button>
+                      </Link>
+                    )}
+                    {member.instagram && (
+                      <Link href={member.instagram}>
+                        <Button
+                          variant="outline"
+                          className="gap-2 bg-gradient-to-r from-primary to-red-400 hover:from-red-500/90 hover:to-red-400/90 transition-all duration-300 text-white"
+                        >
+                          <Instagram className="w-4 h-4" />
+                          Instagram
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </CardContent>
               </Card>

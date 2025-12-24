@@ -51,8 +51,8 @@ export default async function detailEvet({ params }: PageParams) {
       {/* Gambar */}
       <div className="w-full">
         <img
-          src={`/${event.image}`}
-          alt="as"
+          src={event.image.startsWith("http") ? event.image : `/${event.image}`}
+          alt={event.title}
           className="w-full h-auto object-cover"
         />
       </div>

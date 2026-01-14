@@ -11,7 +11,7 @@ export default function Event() {
   return (
     <>
       <EventClient />
-      <div className="container px-4 md:px-6">
+      <div className="container px-4 md:px-6 py-4 md:py-6">
         <ListEvent />
       </div>
     </>

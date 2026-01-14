@@ -35,6 +35,18 @@ function mapEventToDisplay(event: Event): EventDisplay {
   };
 }
 
+export function isEventNew(tanggal: string): boolean {
+  try {
+    const eventDate = new Date(tanggal);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    eventDate.setHours(0, 0, 0, 0);
+    return eventDate >= today;
+  } catch {
+    return false;
+  }
+}
+
 export async function getEvent(slug: string): Promise<EventDisplay | null> {
   const event = await getEventBySlug(slug);
   if (!event) return null;

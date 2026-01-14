@@ -1,137 +1,177 @@
 "use client";
-
-import { useRef } from "react";
-import { useInView } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 import { Linkedin, Instagram } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
-import Link from "next/link";
+import { CoreTeam } from "@/lib/supabase/types";
 import { getPlaceholderAvatarUrl } from "@/lib/placeholder";
-import type { CoreTeam } from "@/lib/supabase/types";
-
 interface TeamClientProps {
   members: CoreTeam[];
 }
-
-export default function TeamClient({ members }: TeamClientProps) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5 },
-    },
-  };
+const ModernTeamPage = ({ members }: TeamClientProps) => {
+  const [hoveredCard, setHoveredCard] = useState<null | string>(null);
 
   return (
-    <section
-      id="komunitas"
-      className="w-full py-20 md:py-10 bg-muted relative overflow-hidden"
-    >
-      {/* Background Elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.01)_1px,transparent_1px)] bg-[size:14px_14px]" />
-      </div>
-
-      <div className="container px-4 md:px-6" ref={ref}>
-        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
-          <motion.div
-            className="space-y-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight lg:text-5xl">
-              Our{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-red-400">
-                Team
-              </span>
-            </h2>
-            <p className="max-w-[800px] mx-auto text-muted-foreground md:text-lg">
-              Core Team MaduraDev
-            </p>
-          </motion.div>
+    <div className="min-h-screen transition-colors duration-500 bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-gray-900 dark:text-white">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden pt-20 pb-20">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 dark:bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 dark:opacity-20 animate-pulse"></div>
+          <div
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 dark:bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 dark:opacity-20 animate-pulse"
+            style={{ animationDelay: "1s" }}
+          ></div>
         </div>
 
-        <motion.div
-          className="grid gap-8 md:grid-cols-3"
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-        >
-          {members.map((member) => (
-            <motion.div
-              key={member.id}
-              className="group relative overflow-hidden rounded-xl border bg-background p-6 transition-all hover:shadow-xl"
-              variants={itemVariants}
-            >
-              <div className="inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-block mb-4 px-4 py-2 bg-gray-900/5 dark:bg-white/5 backdrop-blur-sm border border-gray-900/10 dark:border-white/10 rounded-full">
+            <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+              Meet Our Team
+            </span>
+          </div>
 
-              <Card className="w-full max-w-sm mx-auto text-center p-6 rounded-2xl shadow-md">
-                <CardContent>
-                  <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 flex items-center justify-center">
-                      <img
-                        className="rounded-full w-full h-full object-cover"
-                        src={member.avatar_url || getPlaceholderAvatarUrl(member.name)}
-                        alt={member.name}
-                      />
-                    </div>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            Our{" "}
+            <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Team
+            </span>
+          </h1>
+
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Core Team MaduraDev
+          </p>
+        </div>
+      </div>
+
+      {/* Team Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {members.map((member, index) => (
+            <div
+              key={member.id}
+              className="group relative"
+              style={{
+                animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
+              }}
+              onMouseEnter={() => setHoveredCard(member.id)}
+              onMouseLeave={() => setHoveredCard(null)}
+            >
+              {/* Glow effect */}
+              <div
+                className={`absolute -inset-0.5 bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-500`}
+              ></div>
+
+              {/* Card */}
+              <div className="relative h-full bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-8 transition-all duration-500 group-hover:border-gray-300 dark:group-hover:border-white/20 group-hover:translate-y-[-8px] shadow-lg dark:shadow-none group-hover:shadow-2xl">
+                {/* Gradient border animation */}
+                <div
+                  className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                  style={{
+                    padding: "1px",
+                    WebkitMask:
+                      "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude",
+                  }}
+                ></div>
+
+                {/* Avatar with animated ring */}
+                <div className="relative w-32 h-32 mx-auto mb-6">
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity duration-500`}
+                  ></div>
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full`}
+                    style={{
+                      animation:
+                        hoveredCard === member.id
+                          ? "spin 3s linear infinite"
+                          : "none",
+                      padding: "3px",
+                      WebkitMask:
+                        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                      WebkitMaskComposite: "xor",
+                      maskComposite: "exclude",
+                    }}
+                  ></div>
+                  <div className="relative w-full h-full bg-gray-100 dark:bg-slate-800 rounded-full p-1 border-2 border-gray-200 dark:border-white/10 group-hover:border-gray-400 dark:group-hover:border-white/30 transition-all duration-500">
+                    <img
+                      src={
+                        member.avatar_url ||
+                        getPlaceholderAvatarUrl(member.name)
+                      }
+                      alt={member.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
                   </div>
-                  <h2 className="text-xl font-semibold">{member.name}</h2>
-                  <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/10 dark:bg-orange-900/30 dark:text-orange-400 dark:ring-orange-400/20">
+                </div>
+
+                {/* Content */}
+                <div className="text-center space-y-3">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white group-hover:bg-gradient-to-r group-hover:from-gray-900 group-hover:to-gray-700 dark:group-hover:from-white dark:group-hover:to-gray-300 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-500">
+                    {member.name}
+                  </h3>
+
+                  <div
+                    className={`inline-block px-4 py-1.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full text-sm font-medium text-white`}
+                  >
                     {member.position}
-                  </span>
-                  <p className="text-sm text-gray-500 mb-4">
-                    {member.description || ""}
+                  </div>
+
+                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                    {member.description}
                   </p>
-                  <div className="flex flex-wrap justify-center gap-2">
+
+                  {/* Social Links */}
+                  <div className="flex items-center justify-center gap-3 pt-4">
                     {member.linkedin && (
-                      <Link href={member.linkedin} className="cursor-pointer">
-                        <Button
-                          variant="outline"
-                          className="gap-2 bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-400/90 transition-all duration-300 text-white"
-                        >
-                          <Linkedin className="w-4 h-4" />
-                          LinkedIn
-                        </Button>
-                      </Link>
+                      <a
+                        href={member.linkedin}
+                        className="group/social relative w-10 h-10 bg-gray-900/5 dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-lg flex items-center justify-center hover:bg-blue-500/10 dark:hover:bg-blue-500/20 hover:border-blue-500 dark:hover:border-blue-500/50 transition-all duration-300"
+                      >
+                        <Linkedin className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover/social:text-blue-600 dark:group-hover/social:text-blue-400 transition-colors" />
+                        <div className="absolute inset-0 bg-blue-500/20 rounded-lg blur opacity-0 group-hover/social:opacity-100 transition-opacity"></div>
+                      </a>
                     )}
                     {member.instagram && (
-                      <Link href={member.instagram}>
-                        <Button
-                          variant="outline"
-                          className="gap-2 bg-gradient-to-r from-primary to-red-400 hover:from-red-500/90 hover:to-red-400/90 transition-all duration-300 text-white"
-                        >
-                          <Instagram className="w-4 h-4" />
-                          Instagram
-                        </Button>
-                      </Link>
+                      <a
+                        href={member.instagram}
+                        className="group/social relative w-10 h-10 bg-gray-900/5 dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-lg flex items-center justify-center hover:bg-pink-500/10 dark:hover:bg-pink-500/20 hover:border-pink-500 dark:hover:border-pink-500/50 transition-all duration-300"
+                      >
+                        <Instagram className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover/social:text-pink-600 dark:group-hover/social:text-pink-400 transition-colors" />
+                        <div className="absolute inset-0 bg-pink-500/20 rounded-lg blur opacity-0 group-hover/social:opacity-100 transition-opacity"></div>
+                      </a>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-
-              <div className="absolute -bottom-1 -right-1 w-20 h-20 bg-gradient-to-tl from-primary/20 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </motion.div>
+                </div>
+              </div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
-    </section>
+
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+    </div>
   );
-}
+};
+
+export default ModernTeamPage;

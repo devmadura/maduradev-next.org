@@ -1,5 +1,5 @@
 "use client";
-import { useRef, Suspense } from "react";
+import { useRef } from "react";
 import { useInView } from "framer-motion";
 import { BookOpen, Code, Share2 } from "lucide-react";
 import { motion } from "framer-motion";

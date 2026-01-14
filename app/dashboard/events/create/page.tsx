@@ -94,7 +94,9 @@ export default function CreateEventPage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tambah Event</h1>
-          <p className="text-muted-foreground">Buat event baru untuk komunitas</p>
+          <p className="text-muted-foreground">
+            Buat event baru untuk komunitas
+          </p>
         </div>
       </div>
 
@@ -153,7 +155,9 @@ export default function CreateEventPage() {
                     <SelectItem value="webinar">Webinar</SelectItem>
                     <SelectItem value="workshop">Workshop</SelectItem>
                     <SelectItem value="bootcamp">Bootcamp</SelectItem>
-                    <SelectItem value="bincang-bincang">Bincang-bincang</SelectItem>
+                    <SelectItem value="bincang-bincang">
+                      Bincang-bincang
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -223,7 +227,7 @@ export default function CreateEventPage() {
                       event_date: e.target.value,
                     }))
                   }
-                  placeholder="December 6, 2025"
+                  placeholder="6 December 2025"
                   required
                 />
               </div>

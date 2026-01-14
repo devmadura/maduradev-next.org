@@ -18,8 +18,8 @@ export default function ComunityPathners() {
             <Image
               src={partner.logo}
               alt={partner.name}
-              width={55}
-              height={55}
+              width={44}
+              height={44}
               className="object-contain rounded-lg shadow-md"
             />
           </Link>

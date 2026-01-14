@@ -6,7 +6,7 @@ export default function Robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: ["/"],
-        disallow: ["/instagram", "/telegram", "/facebook"],
+        disallow: ["/instagram", "/telegram", "/facebook", "/dashboard", "/login"],
       },
     ],
     sitemap: `${process.env.NEXT_URL_PUBLISH}/sitemap.xml`,

@@ -15,6 +15,7 @@ export type EventDisplay = {
   location: string;
   tanggal: string;
   waktu: string;
+  updated_at?: string;
 };
 
 function mapEventToDisplay(event: Event): EventDisplay {
@@ -32,6 +33,7 @@ function mapEventToDisplay(event: Event): EventDisplay {
     location: event.location,
     tanggal: event.event_date,
     waktu: event.event_time,
+    updated_at: event.updated_at,
   };
 }
 

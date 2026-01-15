@@ -2,10 +2,7 @@
 
 import { useRef } from "react";
 import { useInView } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Facebook, MessageCircle, Instagram } from "lucide-react";
-import Image from "next/image";
-import { motion } from "framer-motion";
+import { Facebook, MessageCircle, Instagram, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export default function Community() {
@@ -44,94 +41,54 @@ export default function Community() {
     },
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5 },
-    },
-  };
-
   return (
     <section
       id="komunitas"
-      className="w-full py-20 md:py-32 bg-muted relative overflow-hidden"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24"
     >
-      {/* Background Elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.01)_1px,transparent_1px)] bg-[size:14px_14px]" />
-      </div>
-
-      <div className="container px-4 md:px-6" ref={ref}>
-        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
-          <motion.div
-            className="space-y-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight lg:text-5xl">
-              Komunitas{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-red-400">
-                Kami
+      <div className="space-y-16">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/30">
+              <span className="text-xs font-semibold text-primary tracking-wide uppercase">
+                Terhubung dengan kami
               </span>
-            </h2>
-            <p className="max-w-[800px] mx-auto text-muted-foreground md:text-lg">
-              Kami Juga aktif di Sosial Media
+            </div>
+            <h3 className="text-5xl md:text-6xl font-black text-foreground text-balance leading-tight tracking-tight">
+              Ikuti MaduraDev di
+              <br />
+              <span className="text-primary">social media</span>
+            </h3>
+            <p className="text-lg text-foreground/70 max-w-xl leading-relaxed font-light">
+              Terhubung dengan komunitas di berbagai platform dan dapatkan
+              update terbaru tentang event, tips programming, dan peluang
+              kolaborasi.
             </p>
-          </motion.div>
+          </div>
         </div>
 
-        <motion.div
-          className="grid gap-8 md:grid-cols-3"
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-        >
-          {communities.map((community, index) => (
-            <motion.div
-              key={index}
-              className="group relative overflow-hidden rounded-xl border bg-background p-6 transition-all hover:shadow-xl"
-              variants={itemVariants}
+        <div className="grid md:grid-cols-3 gap-6">
+          {communities.map((social, idx) => (
+            <Link
+              key={idx}
+              href={social.buttonLink}
+              className={`group relative p-8 rounded-xl border border-primary/30 hover:border-primary/50 bg-gradient-to-br from-primary/20 to-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col h-full`}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-red-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-              <div className="relative z-10">
-                <div
-                  className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full ${community.iconBg}`}
-                >
-                  {community.icon}
-                </div>
-                <h3 className="mb-2 text-xl font-bold">{community.title}</h3>
-                <p className="mb-6 text-muted-foreground">
-                  {community.description}
-                </p>
-                <Link href={community.buttonLink} target="_blank">
-                  <Button
-                    variant="outline"
-                    className="w-full group-hover:bg-red-400 group-hover:text-primary-foreground transition-colors duration-300"
-                  >
-                    {community.buttonText}
-                  </Button>
-                </Link>
+              <div className="mb-6 w-12 h-12 rounded-lg bg-white dark:bg-primary/30 flex items-center justify-center group-hover:bg-primary/40 transition-colors">
+                {social.icon}
               </div>
-
-              <div className="absolute -bottom-1 -right-1 w-20 h-20 bg-gradient-to-tl from-primary/20 to-transparent rounded-tl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </motion.div>
+              <h4 className="text-xl font-bold text-foreground mb-2">
+                {social.title}
+              </h4>
+              <p className="text-foreground/60 text-sm mb-6 flex-grow leading-relaxed">
+                {social.description}
+              </p>
+              <span className="inline-flex items-center gap-2 text-primary font-semibold group-hover:gap-3 transition-all text-sm">
+                Ikuti Kami <ChevronRight className="w-4 h-4" />
+              </span>
+            </Link>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

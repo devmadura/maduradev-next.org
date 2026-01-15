@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowDown,
-  Sparkles,
-  Users,
-  Waypoints,
-  BadgeCheck,
-} from "lucide-react";
+import { Users, Waypoints, BadgeCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -59,9 +53,16 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="inline-flex items-center rounded-full border px-3 py-1 text-sm">
-              <BadgeCheck className="mr-1 h-3.5 w-3.5 text-primary" />
-              <span>Komunitas Developer Madura</span>
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-20 -z-10"></div>
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl opacity-20 -z-10"></div>
+
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 w-fit">
+              <span className="animate-pulse">
+                <BadgeCheck className="h-3.5 w-3.5 text-green-800 dark:text-green-400" />
+              </span>
+              <span className="text-xs font-semibold text-primary tracking-wide uppercase">
+                Komunitas Developer Lokal
+              </span>
             </div>
 
             <div className="space-y-4">

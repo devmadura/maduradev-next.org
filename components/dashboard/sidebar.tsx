@@ -1,8 +1,16 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, Home, Settings, Users, LogOut } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Settings,
+  Users,
+  LogOut,
+  UserCircle,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,8 +27,10 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import ImageLogo from "../shared/logo-image";
+import { getCurrentUserProfile } from "@/lib/supabase/actions";
+import type { UserRole } from "@/lib/supabase/types";
 
-const menuItems = [
+const adminMenuItems = [
   {
     title: "Overview",
     url: "/dashboard",
@@ -43,10 +53,31 @@ const menuItems = [
   },
 ];
 
+const coreTeamMenuItems = [
+  {
+    title: "My Profile",
+    url: "/dashboard/profile",
+    icon: UserCircle,
+  },
+];
+
 export function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const [role, setRole] = useState<UserRole | null>(null);
+
+  useEffect(() => {
+    async function loadRole() {
+      const profile = await getCurrentUserProfile();
+      if (profile) {
+        setRole(profile.role as UserRole);
+      }
+    }
+    loadRole();
+  }, []);
+
+  const menuItems = role === "admin" ? adminMenuItems : coreTeamMenuItems;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -63,7 +94,9 @@ export function DashboardSidebar() {
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-sm">MaduraDev</span>
-            <span className="text-xs text-muted-foreground">Dashboard</span>
+            <span className="text-xs text-muted-foreground">
+              {role === "admin" ? "Dashboard" : "Profile"}
+            </span>
           </div>
         </div>
       </SidebarHeader>

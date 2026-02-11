@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil } from "lucide-react";
 import { DeleteTeamButton } from "@/components/dashboard/delete-team-button";
+import { GenerateAccountButton } from "@/components/dashboard/generate-account-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 async function getTeamMembers() {
@@ -66,6 +67,7 @@ export default async function TeamPage() {
                 <TableHead>Anggota</TableHead>
                 <TableHead>Position</TableHead>
                 <TableHead>Social</TableHead>
+                <TableHead>Account</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -120,6 +122,21 @@ export default async function TeamPage() {
                         </a>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {member.user_id ? (
+                      <Badge
+                        variant="default"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        ✓ Linked
+                      </Badge>
+                    ) : (
+                      <GenerateAccountButton
+                        teamMemberId={member.id}
+                        memberName={member.name}
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={member.is_active ? "default" : "outline"}>

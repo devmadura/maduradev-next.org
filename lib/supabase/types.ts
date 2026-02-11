@@ -1,5 +1,13 @@
 export type EventFormat = "workshop" | "bincang-bincang" | "bootcamp" | "webinar";
 
+export type UserRole = "admin" | "core_team";
+
+export interface Profile {
+  id: string;
+  role: UserRole;
+  created_at: string;
+}
+
 export interface Event {
   id: string;
   title: string;
@@ -29,6 +37,7 @@ export interface CoreTeam {
   avatar_url: string | null;
   order_index: number;
   is_active: boolean;
+  user_id: string | null;
   created_at: string;
   updated_at: string;
 }

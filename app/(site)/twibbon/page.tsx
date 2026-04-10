@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Camera, Download, RefreshCcw, ArrowLeft } from "lucide-react";
+import { Camera, Download, RefreshCcw, ArrowLeft, SwitchCamera } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,28 @@ export default function TwibbonPage() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+
+  const startCamera = useCallback(async (mode: "user" | "environment" = facingMode) => {
+    try {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const oldStream = videoRef.current.srcObject as MediaStream;
+        oldStream.getTracks().forEach((track) => track.stop());
+      }
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: mode, width: { ideal: 1080 }, height: { ideal: 1080 } },
+      });
+      setStream(newStream);
+      setFacingMode(mode);
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+      }
+      setCameraError(null);
+    } catch (err: any) {
+      console.error("Error accessing camera:", err);
+      setCameraError(err.message || "Tidak dapat mengakses kamera.");
+    }
+  }, [facingMode]);
 
   useEffect(() => {
     let currentStream: MediaStream | null = null;
@@ -38,27 +60,16 @@ export default function TwibbonPage() {
       if (currentStream) {
         currentStream.getTracks().forEach((track) => track.stop());
       }
+      if (videoRef.current && videoRef.current.srcObject) {
+        const oldStream = videoRef.current.srcObject as MediaStream;
+        oldStream.getTracks().forEach((track) => track.stop());
+      }
     };
   }, []);
 
-  // Removed old useCallback startCamera to make it cleaner
-  const startCamera = async () => {
-    try {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1080 } },
-      });
-      setStream(newStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
-      }
-      setCameraError(null);
-    } catch (err: any) {
-      console.error("Error accessing camera:", err);
-      setCameraError(err.message || "Tidak dapat mengakses kamera.");
-    }
+  const toggleCamera = () => {
+    const newMode = facingMode === "user" ? "environment" : "user";
+    startCamera(newMode);
   };
 
   const capturePhoto = () => {
@@ -228,8 +239,17 @@ export default function TwibbonPage() {
                 autoPlay
                 playsInline
                 muted
-                className="absolute inset-0 w-full h-full object-cover scale-x-[-1]"
+                className={`absolute inset-0 w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
               />
+              {/* Switch Camera Button */}
+              <button
+                onClick={toggleCamera}
+                className="absolute top-4 right-4 z-50 p-3 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md transition-all border border-white/20"
+                title="Ganti Kamera"
+              >
+                <SwitchCamera className="w-5 h-5" />
+              </button>
+
               {/* Twibbon DOM Overlay (matches the canvas drawing) */}
               <div className="absolute inset-0 pointer-events-none p-4">
                 {/* Modern Soft Border */}

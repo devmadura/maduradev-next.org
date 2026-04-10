@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import MobileNav from "@/components/MobileNav";
 
 export default function SiteLayout({
   children,
@@ -13,6 +14,7 @@ export default function SiteLayout({
         <Header />
         {children}
         <Footer />
+        <MobileNav />
       </div>
     </>
   );

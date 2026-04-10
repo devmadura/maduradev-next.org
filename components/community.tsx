@@ -1,93 +1,112 @@
 "use client";
 
-import { useRef } from "react";
-import { useInView } from "framer-motion";
-import { Facebook, MessageCircle, Instagram, ChevronRight } from "lucide-react";
+import { motion } from "motion/react";
+import { Send, Instagram, Github, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-export default function Community() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+const socialPlatforms = [
+  {
+    icon: Send,
+    name: "Telegram Group",
+    description: "Pusat diskusi teknis real-time antar developer.",
+    stat: "842 Members",
+    cta: "Join Now",
+    hoverBg: "hover:bg-primary",
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
+    href: "/telegram"
+  },
+  {
+    icon: Instagram,
+    name: "Instagram",
+    description: "Konten edukatif singkat dan update event terbaru.",
+    stat: "165 Followers",
+    cta: "Follow Us",
+    hoverBg: "hover:bg-[#b61722]",
+    iconBg: "bg-[#b61722]/10",
+    iconColor: "text-[#b61722]",
+    href: "/instagram"
+  },
+  {
+    icon: Github,
+    name: "GitHub Org",
+    description: "Kolaborasi open-source untuk membangun tools lokal.",
+    stat: "4 Projects",
+    cta: "Contribute",
+    hoverBg: "hover:bg-foreground hover:text-background",
+    iconBg: "bg-foreground/10",
+    iconColor: "text-foreground",
+    href: "/github"
+  },
+];
 
-  const communities = [
-    {
-      icon: <Facebook className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
-      iconBg: "bg-red-100 dark:bg-blue-900",
-      title: "Facebook",
-      description:
-        "Ikuti Juga kami di facebook kami juga rutin membagikan informasi event atau hal-hal yang lain",
-      buttonText: "Follow Kami",
-      buttonLink: "/facebook",
-    },
-    {
-      icon: <Instagram className="h-6 w-6 text-red-400 dark:text-blue-400" />,
-      iconBg: "bg-blue-100 dark:bg-blue-900",
-      title: "Instagram",
-      description:
-        "Ikuti kami di Instagram untuk tips programming, konten inspiratif, dan info event terbaru.",
-      buttonText: "Follow Kami",
-      buttonLink: "/instagram",
-    },
-    {
-      icon: (
-        <MessageCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-      ),
-      iconBg: "bg-blue-100 dark:bg-blue-900",
-      title: "Telegram",
-      description:
-        "Diskusikan langsung dengan sesama programmer dan dapatkan bantuan langsung dari para ahli.",
-      buttonText: "Join Grub",
-      buttonLink: "/telegram",
-    },
-  ];
-
+export default function SocialConnect() {
   return (
-    <section
-      id="komunitas"
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24"
-    >
-      <div className="space-y-16">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <div className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/30">
-              <span className="text-xs font-semibold text-primary tracking-wide uppercase">
-                Terhubung dengan kami
-              </span>
-            </div>
-            <h3 className="text-5xl md:text-6xl font-black text-foreground text-balance leading-tight tracking-tight">
-              Ikuti MaduraDev di
-              <br />
-              <span className="text-primary">social media</span>
+    <section className="py-24 bg-background overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+          <div className="max-w-xl">
+            <h3 className="text-4xl font-black tracking-tight mb-4 font-display">
+              Connect with the <span className="text-primary">Ecosystem.</span>
             </h3>
-            <p className="text-lg text-foreground/70 max-w-xl leading-relaxed font-light">
-              Terhubung dengan komunitas di berbagai platform dan dapatkan
-              update terbaru tentang event, tips programming, dan peluang
-              kolaborasi.
+            <p className="text-muted-foreground leading-relaxed">
+              Pilih platform favoritmu untuk tetap update dengan jadwal event,
+              lowongan kerja, dan diskusi santai kami.
             </p>
+          </div>
+          <div className="hidden md:flex gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary" />
+            <div className="w-2 h-2 rounded-full bg-border" />
+            <div className="w-2 h-2 rounded-full bg-border" />
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {communities.map((social, idx) => (
-            <Link
-              key={idx}
-              href={social.buttonLink}
-              className={`group relative p-8 rounded-xl border border-primary/30 hover:border-primary/50 bg-gradient-to-br from-primary/20 to-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col h-full`}
-            >
-              <div className="mb-6 w-12 h-12 rounded-lg bg-white dark:bg-primary/30 flex items-center justify-center group-hover:bg-primary/40 transition-colors">
-                {social.icon}
-              </div>
-              <h4 className="text-xl font-bold text-foreground mb-2">
-                {social.title}
-              </h4>
-              <p className="text-foreground/60 text-sm mb-6 flex-grow leading-relaxed">
-                {social.description}
-              </p>
-              <span className="inline-flex items-center gap-2 text-primary font-semibold group-hover:gap-3 transition-all text-sm">
-                Ikuti Kami <ChevronRight className="w-4 h-4" />
-              </span>
-            </Link>
-          ))}
+        {/* Platform Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {socialPlatforms.map(
+            ({
+              icon: Icon,
+              name,
+              description,
+              stat,
+              cta,
+              hoverBg,
+              iconBg,
+              iconColor,
+              href
+            }) => (
+              <motion.div
+                key={name}
+                whileHover={{ y: -10 }}
+                className={`bg-card p-8 rounded-3xl border border-border/50 group ${hoverBg} transition-all duration-300`}
+              >
+                <div className="flex justify-between items-start mb-12">
+                  <div
+                    className={`w-12 h-12 ${iconBg} rounded-xl flex items-center justify-center group-hover:bg-background`}
+                  >
+                    <Icon className={`${iconColor} group-hover:${iconColor}`} />
+                  </div>
+                  <span className="font-label text-xs font-bold text-muted-foreground group-hover:text-background/70">
+                    {stat}
+                  </span>
+                </div>
+                <h4 className="text-xl font-bold mb-2 group-hover:text-background">
+                  {name}
+                </h4>
+                <p className="text-sm text-muted-foreground group-hover:text-background/80 mb-6">
+                  {description}
+                </p>
+                <Link
+                  href={href}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 font-bold text-primary group-hover:text-background transition-colors"
+                >
+                  {cta} <ArrowRight size={16} />
+                </Link>
+              </motion.div>
+            ),
+          )}
         </div>
       </div>
     </section>

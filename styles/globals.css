@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -47,7 +48,20 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --color-primary: #0058be;
+    --color-primary-container: #2170e4;
+    --color-secondary: #b61722;
+    --color-secondary-container: #da3437;
+    --color-background: #f8f9ff;
+    --color-surface: #f8f9ff;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-high: #dce9ff;
+    --color-on-background: #0b1c30;
+    --color-on-surface-variant: #424754;
+    --color-outline-variant: #c2c6d6;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -88,7 +102,29 @@ body {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-on-background font-sans selection:bg-primary/20;
+  }
+}
+
+@layer utilities {
+  .glass-nav {
+    background: rgba(248, 249, 255, 0.8);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .editorial-shadow {
+    box-shadow: 0 20px 40px rgba(11, 28, 48, 0.06);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

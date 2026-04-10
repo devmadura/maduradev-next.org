@@ -1,112 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
-import { Menu, X } from "lucide-react";
+import { Search, Send } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import ImageLogo from "./shared/logo-image";
+import { usePathname } from "next/navigation";
 
-export default function Header() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const navLinks = [
+  {
+    name: "Home",
+    url: "/",
+  },
+  {
+    name: "Event",
+    url: "/events",
+  },
+  {
+    name: "Team",
+    url: "/teams",
+  },
+];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+export default function Navbar() {
+  const pathname = usePathname();
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
-        isScrolled
-          ? "bg-background/80 backdrop-blur-md border-b shadow-sm"
-          : "bg-transparent",
-      )}
-    >
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ImageLogo />
+    <nav className="fixed top-0 w-full z-50 glass-nav border-b border-border/40 bg-background/60 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <span className="text-2xl font-black tracking-tighter text-primary">
+            MaduraDev
+          </span>
+          <div className="hidden md:flex items-center gap-8">
+            {navLinks.map((item, i) => (
+              <Link
+                key={i}
+                href={item.url}
+                className={`text-xs font-label font-bold uppercase tracking-widest transition-colors ${
+                  (item.url === '/' ? pathname === '/' : pathname?.startsWith(item.url))
+                    ? "text-primary border-b-2 border-primary pb-1"
+                    : "text-muted-foreground hover:text-primary"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
         </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
-          <Link href="/" className="text-sm font-medium relative group">
-            <span className="transition-colors hover:text-primary">
-              Komunitas
-            </span>
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-400 transition-all duration-300 group-hover:w-full"></span>
-          </Link>
-          <Link href="/events" className="text-sm font-medium relative group">
-            <span className="transition-colors hover:text-primary">Event</span>
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-400 transition-all duration-300 group-hover:w-full"></span>
-          </Link>
-          <Link href="/teams" className="text-sm font-medium relative group">
-            <span className="transition-colors hover:text-primary">
-              Our Team
-            </span>
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-400 transition-all duration-300 group-hover:w-full"></span>
-          </Link>
-        </nav>
-
         <div className="flex items-center gap-4">
-          <SimpleThemeToggle />
-          <Button className="hidden md:flex bg-gradient-to-r from-primary to-red-400 hover:from-red-500/90 hover:to-red-400/90 transition-all duration-300">
-            Join Us
-          </Button>
-
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </Button>
+          <button className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-muted-foreground">
+            <Search size={20} />
+          </button>
+          <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-lg font-bold text-sm transition-all active:scale-95 shadow-lg shadow-primary/20">
+            Join Now
+          </button>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-background/95 backdrop-blur-md">
-          <nav className="container flex flex-col py-4 text-center">
-            <Link
-              href="/"
-              className="py-3 text-sm font-medium border-b border-border/50"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Komunitas
-            </Link>
-            <Link
-              href="/events"
-              className="py-3 text-sm font-medium border-b border-border/50"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Event
-            </Link>
-            <Link
-              href="/teams"
-              className="py-3 text-sm font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Our Team
-            </Link>
-            <Button className="mt-4 bg-gradient-to-r from-primary to-red-400 hover:from-red-500/90 hover:to-red-400/90">
-              Join Us
-            </Button>
-          </nav>
-        </div>
-      )}
-    </header>
+    </nav>
   );
 }

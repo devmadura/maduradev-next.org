@@ -1,8 +1,7 @@
 "use client";
 import { useRef } from "react";
-import { useInView } from "framer-motion";
+import { useInView, motion } from "framer-motion";
 import { BookOpen, Code, Share2 } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function EventClient() {
   const ref = useRef(null);
@@ -10,30 +9,27 @@ export default function EventClient() {
 
   const resources = [
     {
-      icon: <BookOpen className="h-6 w-6 text-red-400 dark:text-blue-400" />,
-      iconBg: "bg-blue-100 dark:bg-blue-900",
+      icon: BookOpen,
+      iconBg: "bg-red-500/10",
+      iconColor: "text-red-500",
       title: "Bedah Buku",
       description: "Belajar Kesimpulan Dari sebuah Buku",
-      buttonLink: "#",
-      color: "from-blue-500 to-blue-700",
     },
     {
-      icon: <Code className="h-6 w-6 text-red-400 dark:text-blue-400" />,
-      iconBg: "bg-blue-100 dark:bg-blue-900",
-      title: "ngoding",
+      icon: Code,
+      iconBg: "bg-blue-500/10",
+      iconColor: "text-blue-500",
+      title: "Ngoding",
       description:
         "Uji kemampuan koding kamu dengan tantangan yang menyenangkan dan menantang.",
-      buttonLink: "#",
-      color: "from-blue-500 to-blue-700",
     },
     {
-      icon: <Share2 className="h-6 w-6 text-red-400 dark:text-blue-400" />,
-      iconBg: "bg-blue-100 dark:bg-blue-900",
+      icon: Share2,
+      iconBg: "bg-green-500/10",
+      iconColor: "text-green-500",
       title: "Sharing Session",
       description:
         "Ikuti sesi berbagi pengalaman dari programmer berpengalaman dan belajar dari pengalaman mereka.",
-      buttonLink: "#",
-      color: "from-blue-500 to-blue-700",
     },
   ];
 
@@ -59,73 +55,77 @@ export default function EventClient() {
   return (
     <section
       id="sumber-belajar"
-      className="w-full py-20 md:py-10 relative overflow-hidden"
+      className="py-24 bg-background relative overflow-hidden"
     >
-      {/* Background Elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-primary/5 to-transparent blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-blue-400/5 to-transparent blur-3xl" />
+      {/* Dot Grid Background */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 2px 2px, #0058be 1px, transparent 0)",
+            backgroundSize: "40px 40px",
+          }}
+        />
       </div>
 
-      <div className="container px-4 md:px-6" ref={ref}>
-        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
+      <div className="max-w-7xl mx-auto px-6 relative z-10" ref={ref}>
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <motion.div
-            className="space-y-2"
+            className="max-w-xl"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight lg:text-5xl">
-              Semua{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-red-400">
-                Event
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full mb-6">
+              <span className="font-label text-[10px] font-bold uppercase tracking-widest">
+                Our Events
               </span>
-            </h2>
-            <p className="max-w-[800px] mx-auto text-muted-foreground md:text-lg">
-              Semua List event yang di adakan oleh maduradev
+            </div>
+            <h3 className="text-4xl md:text-5xl font-black tracking-tight mb-4 font-display">
+              Semua <span className="text-primary italic">Event</span>
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Semua daftar event yang diadakan oleh MaduraDev, mulai dari bedah buku, ngoding bareng, hingga sharing session reguler.
             </p>
           </motion.div>
+          <div className="hidden md:flex gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary" />
+            <div className="w-2 h-2 rounded-full bg-border" />
+            <div className="w-2 h-2 rounded-full bg-border" />
+          </div>
         </div>
 
         <motion.div
-          className="grid gap-8 md:grid-cols-2 lg:grid-cols-4"
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
         >
-          {resources.map((resource, index) => (
-            <motion.div
-              key={index}
-              className="group relative overflow-hidden rounded-xl border bg-background p-6 transition-all hover:shadow-lg"
-              variants={itemVariants}
-            >
-              <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-red-500/50 to-red-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-              <div className="relative z-10">
-                <div
-                  className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full ${resource.iconBg}`}
-                >
-                  {resource.icon}
+          {resources.map((resource, index) => {
+            const Icon = resource.icon;
+            return (
+              <motion.div
+                key={index}
+                className="bg-card p-8 rounded-3xl border border-border/50 group hover:border-primary/50 transition-all duration-300 editorial-shadow hover:-translate-y-2 flex flex-col justify-between"
+                variants={itemVariants}
+              >
+                <div>
+                  <div
+                    className={`mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl ${resource.iconBg}`}
+                  >
+                    <Icon className={`h-6 w-6 ${resource.iconColor}`} />
+                  </div>
+                  <h4 className="text-xl font-bold mb-2">{resource.title}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    {resource.description}
+                  </p>
                 </div>
-                <h3 className="mb-2 text-xl font-bold">{resource.title}</h3>
-                <p className="mb-6 text-muted-foreground">
-                  {resource.description}
-                </p>
-                {/* <Button
-                  variant="link"
-                  className="p-0 h-auto font-medium text-primary hover:text-primary/80"
-                >
-                  {resource.buttonText} →
-                </Button> */}
-              </div>
-
-              <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-gradient-to-tl from-primary/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:-translate-y-10 group-hover:-translate-x-10" />
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </motion.div>
-
-        {/* Featured Resource - moved to page.tsx as server component */}
       </div>
     </section>
   );

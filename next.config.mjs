@@ -44,6 +44,11 @@ const nextConfig = {
         destination: "https://www.facebook.com/share/1HirCi8H6x/",
         permanent: true,
       },
+      {
+        source: "/github",
+        destination: "https://github.com/maduradevcommunity",
+        permanent: true,
+      }
     ];
   },
 };

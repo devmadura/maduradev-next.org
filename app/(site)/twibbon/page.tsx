@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Camera, Download, RefreshCcw, ArrowLeft, SwitchCamera } from "lucide-react";
+import {
+  Camera,
+  Download,
+  RefreshCcw,
+  ArrowLeft,
+  SwitchCamera,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -12,185 +18,385 @@ export default function TwibbonPage() {
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  const [isCapturing, setIsCapturing] = useState(false);
+  // Use a ref so capturePhoto always reads the latest value without stale closure
+  const facingModeRef = useRef<"user" | "environment">("user");
 
-  const startCamera = useCallback(async (mode: "user" | "environment" = facingMode) => {
-    try {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const oldStream = videoRef.current.srcObject as MediaStream;
-        oldStream.getTracks().forEach((track) => track.stop());
-      }
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: mode, width: { ideal: 1080 }, height: { ideal: 1080 } },
-      });
-      setStream(newStream);
-      setFacingMode(mode);
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
-      }
-      setCameraError(null);
-    } catch (err: any) {
-      console.error("Error accessing camera:", err);
-      setCameraError(err.message || "Tidak dapat mengakses kamera.");
-    }
-  }, [facingMode]);
-
-  useEffect(() => {
-    let currentStream: MediaStream | null = null;
-    
-    const initCamera = async () => {
+  const startCamera = useCallback(
+    async (mode: "user" | "environment" = "user") => {
       try {
-        const newStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1080 } },
-        });
-        currentStream = newStream;
-        setStream(newStream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = newStream;
+        if (videoRef.current?.srcObject) {
+          (videoRef.current.srcObject as MediaStream)
+            .getTracks()
+            .forEach((t) => t.stop());
         }
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: mode,
+            width: { ideal: 1080 },
+            height: { ideal: 1080 },
+          },
+        });
+        setStream(newStream);
+        setFacingMode(mode);
+        facingModeRef.current = mode;
+        if (videoRef.current) videoRef.current.srcObject = newStream;
         setCameraError(null);
       } catch (err: any) {
-        console.error("Error accessing camera:", err);
         setCameraError(err.message || "Tidak dapat mengakses kamera.");
       }
-    };
+    },
+    [],
+  );
 
-    initCamera();
-
+  useEffect(() => {
+    startCamera("user");
     return () => {
-      if (currentStream) {
-        currentStream.getTracks().forEach((track) => track.stop());
-      }
-      if (videoRef.current && videoRef.current.srcObject) {
-        const oldStream = videoRef.current.srcObject as MediaStream;
-        oldStream.getTracks().forEach((track) => track.stop());
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((t) => t.stop());
       }
     };
   }, []);
 
   const toggleCamera = () => {
-    const newMode = facingMode === "user" ? "environment" : "user";
-    startCamera(newMode);
+    const next = facingModeRef.current === "user" ? "environment" : "user";
+    startCamera(next);
+  };
+  // TWIBBON OVERLAY DRAWING (pure canvas, no video reading happens here)
+  const drawTwibbon = (
+    ctx: CanvasRenderingContext2D,
+    S: number,
+    logoImg: HTMLImageElement | null,
+  ) => {
+    // Grid lines
+    ctx.save();
+    ctx.globalAlpha = 0.05;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    const step = S / 8;
+    for (let i = 1; i < 8; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * step, 0);
+      ctx.lineTo(i * step, S);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, i * step);
+      ctx.lineTo(S, i * step);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Diagonal cross accent
+    ctx.save();
+    ctx.globalAlpha = 0.04;
+    ctx.lineWidth = 100;
+    ctx.strokeStyle = "#0058BE";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(S, S);
+    ctx.stroke();
+    ctx.strokeStyle = "#B61722";
+    ctx.beginPath();
+    ctx.moveTo(S, 0);
+    ctx.lineTo(0, S);
+    ctx.stroke();
+    ctx.restore();
+
+    // Corner vignette
+    const vig = ctx.createLinearGradient(0, 0, S, S);
+    vig.addColorStop(0, "rgba(0,88,190,0.2)");
+    vig.addColorStop(0.45, "rgba(0,0,0,0)");
+    vig.addColorStop(0.55, "rgba(0,0,0,0)");
+    vig.addColorStop(1, "rgba(182,23,34,0.2)");
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, S, S);
+
+    // Outer gradient border
+    const bGrad = ctx.createLinearGradient(0, 0, S, S);
+    bGrad.addColorStop(0, "#0058BE");
+    bGrad.addColorStop(0.5, "#7B1FA2");
+    bGrad.addColorStop(1, "#B61722");
+    ctx.strokeStyle = bGrad;
+    ctx.lineWidth = 16;
+    ctx.strokeRect(8, 8, S - 16, S - 16);
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.45;
+    ctx.strokeRect(26, 26, S - 52, S - 52);
+    ctx.globalAlpha = 1;
+
+    // TOP BANNER — red, with big logo overflowing downward
+    const bannerH = 115;
+    const topGrad = ctx.createLinearGradient(0, 0, S, 0);
+    topGrad.addColorStop(0, "rgba(182,23,34,0.96)");
+    topGrad.addColorStop(1, "rgba(136,14,27,0.93)");
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, S, bannerH);
+
+    // Logo — large, overflows below the top banner
+    if (logoImg && logoImg.naturalWidth > 0) {
+      const lw = S * 0.2;
+      const lh = (logoImg.naturalHeight / logoImg.naturalWidth) * lw;
+      // anchor bottom of logo ~40% below the banner bottom edge
+      const ly = bannerH - lh * 0.6;
+      ctx.drawImage(logoImg, S / 2 - lw / 2, ly, lw, lh);
+    } else {
+      // Fallback </> icon + text centered in top banner area
+      const cx = S / 2;
+      const iy = bannerH * 0.52;
+      const bW = 70,
+        bH = 38;
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 10;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(cx - bW * 0.42, iy + bH / 2);
+      ctx.lineTo(cx - bW * 0.82, iy);
+      ctx.lineTo(cx - bW * 0.42, iy - bH / 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + bW * 0.42, iy + bH / 2);
+      ctx.lineTo(cx + bW * 0.82, iy);
+      ctx.lineTo(cx + bW * 0.42, iy - bH / 2);
+      ctx.stroke();
+      ctx.strokeStyle = "#FFCDD2";
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(cx + 10, iy + bH / 2 - 2);
+      ctx.lineTo(cx - 10, iy - bH / 2 + 2);
+      ctx.stroke();
+      const fs = Math.round(S * 0.028);
+      ctx.font = `bold ${fs}px 'Inter','Segoe UI',Arial,sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText("Madura", S / 2 - fs * 1.5, bannerH * 0.82);
+      ctx.fillStyle = "#FFCDD2";
+      ctx.fillText("Dev", S / 2 + fs * 1.08, bannerH * 0.82);
+    }
+
+    // Side accent lines
+    const sY1 = S * 0.3,
+      sY2 = S * 0.54;
+    const sx1 = 50,
+      sx2 = 62;
+    ctx.lineCap = "round";
+    ctx.globalAlpha = 0.75;
+    ctx.strokeStyle = "#0058BE";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(sx1, sY1);
+    ctx.lineTo(sx1, sY2);
+    ctx.stroke();
+    ctx.globalAlpha = 0.4;
+    ctx.strokeStyle = "#0058BE";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(sx2, sY1 + 20);
+    ctx.lineTo(sx2, sY2 - 20);
+    ctx.stroke();
+    ctx.globalAlpha = 0.75;
+    ctx.strokeStyle = "#B61722";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(S - sx1, sY1);
+    ctx.lineTo(S - sx1, sY2);
+    ctx.stroke();
+    ctx.globalAlpha = 0.4;
+    ctx.strokeStyle = "#B61722";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(S - sx2, sY1 + 20);
+    ctx.lineTo(S - sx2, sY2 - 20);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Mid scan line
+    const scanY = S * 0.5;
+    const sg = ctx.createLinearGradient(0, scanY - 35, 0, scanY + 35);
+    sg.addColorStop(0, "rgba(0,88,190,0)");
+    sg.addColorStop(0.5, "rgba(0,88,190,0.13)");
+    sg.addColorStop(1, "rgba(0,88,190,0)");
+    ctx.fillStyle = sg;
+    ctx.fillRect(0, scanY - 35, S, 70);
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = "#0058BE";
+    ctx.beginPath();
+    ctx.moveTo(90, scanY);
+    ctx.lineTo(S * 0.27, scanY);
+    ctx.stroke();
+    ctx.strokeStyle = "#B61722";
+    ctx.beginPath();
+    ctx.moveTo(S - 90, scanY);
+    ctx.lineTo(S * 0.73, scanY);
+    ctx.stroke();
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(S / 2, scanY, 10, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Corner brackets — anchored just BELOW top banner and ABOVE bottom banner
+    const pad = 85,
+      brkLen = 140,
+      bw = 9;
+    const bY1 = bannerH + 28; // top anchor y
+    const bY2 = S - bannerH - 28; // bottom anchor y
+
+    ctx.strokeStyle = "#FFFFFF";
+    ctx.lineWidth = bw;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(pad, bY1 + brkLen);
+    ctx.lineTo(pad, bY1);
+    ctx.lineTo(pad + brkLen, bY1);
+    ctx.stroke();
+    drawDot(ctx, pad, bY1, 8, "#0058BE");
+
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(S - pad - brkLen, bY1);
+    ctx.lineTo(S - pad, bY1);
+    ctx.lineTo(S - pad, bY1 + brkLen);
+    ctx.stroke();
+    drawDot(ctx, S - pad, bY1, 8, "#0058BE");
+
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(pad, bY2 - brkLen);
+    ctx.lineTo(pad, bY2);
+    ctx.lineTo(pad + brkLen, bY2);
+    ctx.stroke();
+    drawDot(ctx, pad, bY2, 8, "#B61722");
+
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(S - pad - brkLen, bY2);
+    ctx.lineTo(S - pad, bY2);
+    ctx.lineTo(S - pad, bY2 - brkLen);
+    ctx.stroke();
+    drawDot(ctx, S - pad, bY2, 8, "#B61722");
+
+    // BOTTOM BANNER — blue, with LOCAL TECH HUB text
+    const botH = 115;
+    const botGrad = ctx.createLinearGradient(0, 0, S, 0);
+    botGrad.addColorStop(0, "rgba(0,70,200,0.96)");
+    botGrad.addColorStop(1, "rgba(21,101,192,0.93)");
+    ctx.fillStyle = botGrad;
+    ctx.fillRect(0, S - botH, S, botH);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = `bold ${Math.round(S * 0.034)}px 'Inter','Segoe UI',Arial,sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText("LOCAL TECH HUB", S / 2, S - botH * 0.37);
+
+    // dots beside text
+    ctx.globalAlpha = 0.65;
+    [
+      [S * 0.19, S - botH * 0.43, 5],
+      [S * 0.175, S - botH * 0.43, 3.5],
+      [S * 0.81, S - botH * 0.43, 5],
+      [S * 0.825, S - botH * 0.43, 3.5],
+    ].forEach(([x, y, r]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
   };
 
+  // CAPTURE PHOTO
   const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
     const video = videoRef.current;
     const canvas = canvasRef.current;
+    if (!video || !canvas) return;
 
-    // We want a square twibbon. Let's make it 1080x1080
-    const twibbonSize = 1080;
-    canvas.width = twibbonSize;
-    canvas.height = twibbonSize;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-
-    const videoAspectRatio = video.videoWidth / video.videoHeight;
-    let sWidth = video.videoWidth;
-    let sHeight = video.videoHeight;
-    let sx = 0;
-    let sy = 0;
-
-    if (videoAspectRatio > 1) {
-      // Landscape video: crop sides
-      sWidth = video.videoHeight;
-      sx = (video.videoWidth - sWidth) / 2;
-    } else {
-      // Portrait video: crop top/bottom
-      sHeight = video.videoWidth;
-      sy = (video.videoHeight - sHeight) / 2;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    if (!vw || !vh) {
+      alert("Kamera belum siap, tunggu sebentar lalu coba lagi.");
+      return;
     }
 
-    ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, twibbonSize, twibbonSize);
+    setIsCapturing(true);
+    const SIZE = 1080;
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+    const ctx = canvas.getContext("2d")!;
 
-    // 2. Draw Twibbon Frame Overlay (Tech Hub Style)
-
-    // Gradient Outer Border
-    const borderGradient = ctx.createLinearGradient(0, 0, twibbonSize, twibbonSize);
-    borderGradient.addColorStop(0, "rgba(0, 88, 190, 0.4)"); // Primary
-    borderGradient.addColorStop(1, "rgba(182, 23, 34, 0.4)"); // Secondary
-    ctx.lineWidth = 30;
-    ctx.strokeStyle = borderGradient;
-
-    // Use roundRect if available for modern soft borders
-    ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(40, 40, twibbonSize - 80, twibbonSize - 80, 80);
+    // Crop video frame to square
+    let sx = 0,
+      sy = 0,
+      sw = vw,
+      sh = vh;
+    if (vw > vh) {
+      sw = vh;
+      sx = (vw - sw) / 2;
     } else {
-      ctx.rect(40, 40, twibbonSize - 80, twibbonSize - 80);
+      sh = vw;
+      sy = (vh - sh) / 2;
     }
-    ctx.stroke();
 
-    // Corner Brackets (Futuristic look)
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.lineWidth = 15;
-    const padding = 80;
-    const bracketLen = 140;
+    // *** Snapshot the live video frame into an offscreen canvas RIGHT NOW ***
+    // This must happen BEFORE stream.stop() or the result will be black.
+    const snap = document.createElement("canvas");
+    snap.width = SIZE;
+    snap.height = SIZE;
+    const sCtx = snap.getContext("2d")!;
+    if (facingModeRef.current === "user") {
+      sCtx.translate(SIZE, 0);
+      sCtx.scale(-1, 1);
+    }
+    sCtx.drawImage(video, sx, sy, sw, sh, 0, 0, SIZE, SIZE);
 
-    // Top Left
-    ctx.beginPath(); ctx.moveTo(padding, padding + bracketLen); ctx.lineTo(padding, padding); ctx.lineTo(padding + bracketLen, padding); ctx.stroke();
-    // Top Right
-    ctx.beginPath(); ctx.moveTo(twibbonSize - padding - bracketLen, padding); ctx.lineTo(twibbonSize - padding, padding); ctx.lineTo(twibbonSize - padding, padding + bracketLen); ctx.stroke();
-    // Bottom Left
-    ctx.beginPath(); ctx.moveTo(padding, twibbonSize - padding - bracketLen); ctx.lineTo(padding, twibbonSize - padding); ctx.lineTo(padding + bracketLen, twibbonSize - padding); ctx.stroke();
-    // Bottom Right
-    ctx.beginPath(); ctx.moveTo(twibbonSize - padding - bracketLen, twibbonSize - padding); ctx.lineTo(twibbonSize - padding, twibbonSize - padding); ctx.lineTo(twibbonSize - padding, twibbonSize - padding - bracketLen); ctx.stroke();
-
-    // Top Text (LOCAL TECH HUB)
-    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-    ctx.font = "bold 40px 'Inter', sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("LOCAL TECH HUB", twibbonSize / 2, padding + 80);
-
-    // 3. Draw Logo 
-    const logoImg = new Image();
-    logoImg.src = "/logos/logo_madura_light.png";
-    logoImg.onload = () => {
-      // Draw logo at bottom center, much smaller now (200px instead of 350px)
-      const logoWidth = 200;
-      const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
-      ctx.drawImage(logoImg, (twibbonSize - logoWidth) / 2, twibbonSize - logoHeight - padding - 40, logoWidth, logoHeight);
-
-      // Save data URL
+    // Compose: draw snapshot + twibbon overlay onto main canvas
+    const compose = (logoImg: HTMLImageElement | null) => {
+      ctx.clearRect(0, 0, SIZE, SIZE);
+      ctx.drawImage(snap, 0, 0); // frozen photo (not live video!)
+      drawTwibbon(ctx, SIZE, logoImg);
       setPhotoURL(canvas.toDataURL("image/png", 1.0));
-      
-      // Stop camera to save battery
+      setIsCapturing(false);
+      // Stop camera only after we're done reading from it
       if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
+        stream.getTracks().forEach((t) => t.stop());
         setStream(null);
       }
     };
 
-    // Fallback if image fails to load
-    logoImg.onerror = () => {
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 40px 'Inter', sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("MADURADEV", twibbonSize / 2, twibbonSize - padding - 60);
-      setPhotoURL(canvas.toDataURL("image/png", 1.0));
-      
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-        setStream(null);
-      }
+    const logo = new Image();
+    logo.crossOrigin = "anonymous";
+    logo.src = "/logos/logo_madura_light.png";
+    logo.onload = () => compose(logo);
+    logo.onerror = () => compose(null);
+    // Fallback if logo takes too long
+    const fallbackTimer = setTimeout(() => compose(null), 3000);
+    logo.onload = (e) => {
+      clearTimeout(fallbackTimer);
+      compose(logo);
     };
   };
 
   const retakePhoto = () => {
     setPhotoURL(null);
-    startCamera();
+    startCamera(facingModeRef.current);
   };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col py-24">
-      {/* Dot Grid Background */}
       <div className="fixed inset-0 opacity-5 pointer-events-none z-0">
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: "radial-gradient(circle at 2px 2px, #0058be 1px, transparent 0)",
+            backgroundImage:
+              "radial-gradient(circle at 2px 2px, #0058be 1px, transparent 0)",
             backgroundSize: "40px 40px",
           }}
         />
@@ -217,76 +423,139 @@ export default function TwibbonPage() {
             MaduraDev <span className="text-primary italic">Camera</span>
           </h1>
           <p className="text-muted-foreground text-sm">
-            Tunjukkan semangantmu sebagai bagian dari MaduraDev! Ambil foto dan gunakan twibbon eksklusif ini.
+            Tunjukkan semangatmu sebagai bagian dari MaduraDev! Ambil foto dan
+            gunakan twibbon eksklusif ini.
           </p>
         </div>
 
-        {/* Camera/Result Canvas Area */}
-        <div className="w-full aspect-square relative rounded-[2.5rem] overflow-hidden editorial-shadow mb-8 bg-black/10 flex items-center justify-center">
+        <div className="w-full aspect-square relative rounded-[2.5rem] overflow-hidden editorial-shadow mb-8 bg-black flex items-center justify-center">
           {cameraError && !photoURL ? (
             <div className="text-center p-6">
               <p className="text-destructive font-bold mb-2">Oops!</p>
               <p className="text-sm text-muted-foreground">{cameraError}</p>
             </div>
           ) : photoURL ? (
-            // Result View
-            <img src={photoURL} alt="Twibbon Result" className="w-full h-full object-cover" />
+            <img
+              src={photoURL}
+              alt="Twibbon Result"
+              className="w-full h-full object-cover"
+            />
           ) : (
-            // Camera View
             <>
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className={`absolute inset-0 w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+                className={`absolute inset-0 w-full h-full object-cover ${
+                  facingMode === "user" ? "scale-x-[-1]" : ""
+                }`}
               />
-              {/* Switch Camera Button */}
+
               <button
                 onClick={toggleCamera}
                 className="absolute top-4 right-4 z-50 p-3 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md transition-all border border-white/20"
-                title="Ganti Kamera"
               >
                 <SwitchCamera className="w-5 h-5" />
               </button>
 
-              {/* Twibbon DOM Overlay (matches the canvas drawing) */}
-              <div className="absolute inset-0 pointer-events-none p-4">
-                {/* Modern Soft Border */}
-                <div className="absolute inset-4 rounded-[2rem] border-8 border-primary/30 mix-blend-screen" />
+              {/* Preview twibbon overlay */}
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Gradient border */}
+                <div
+                  className="absolute inset-0 rounded-[2.5rem]"
+                  style={{
+                    background:
+                      "linear-gradient(135deg,#0058BE,#7B1FA2,#B61722) border-box",
+                    WebkitMask:
+                      "linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0)",
+                    WebkitMaskComposite: "destination-out",
+                    maskComposite: "exclude",
+                    border: "6px solid transparent",
+                  }}
+                />
 
-                {/* Tech Hub Corner Brackets */}
-                <div className="absolute top-8 left-8 w-12 h-12 border-t-[5px] border-l-[5px] border-white/90 rounded-tl-2xl mix-blend-overlay" />
-                <div className="absolute top-8 right-8 w-12 h-12 border-t-[5px] border-r-[5px] border-white/90 rounded-tr-2xl mix-blend-overlay" />
-                <div className="absolute bottom-8 left-8 w-12 h-12 border-b-[5px] border-l-[5px] border-white/90 rounded-bl-2xl mix-blend-overlay" />
-                <div className="absolute bottom-8 right-8 w-12 h-12 border-b-[5px] border-r-[5px] border-white/90 rounded-br-2xl mix-blend-overlay" />
-
-                {/* Top Text Overlay */}
-                <div className="absolute top-16 left-1/2 -translate-x-1/2 text-white font-bold tracking-[0.25em] text-xs sm:text-sm drop-shadow-md whitespace-nowrap">
-                  LOCAL TECH HUB
+                {/* Top banner — red */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-[11%] rounded-t-[2.5rem]"
+                  style={{ background: "rgba(182,23,34,0.9)" }}
+                />
+                {/* Logo — large, overflows below the top banner */}
+                <div
+                  className="absolute left-1/2 -translate-x-1/2"
+                  style={{ top: "1%", width: "25%" }}
+                >
+                  <img
+                    src="/logos/logo_madura_light.png"
+                    alt="MaduraDev"
+                    className="w-full h-auto drop-shadow-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
                 </div>
 
-                {/* Logo (Shrunk!) */}
-                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-24 sm:w-28 drop-shadow-2xl">
-                  <img src="/logos/logo_madura_light.png" alt="MaduraDev" className="w-full h-auto opacity-100" />
+                {/* Corner brackets — just below/above banners */}
+                <div
+                  className="absolute border-white/90 border-t-[4px] border-l-[4px] w-10 h-10 sm:w-12 sm:h-12"
+                  style={{ top: "13%", left: "8%" }}
+                />
+                <div
+                  className="absolute border-white/90 border-t-[4px] border-r-[4px] w-10 h-10 sm:w-12 sm:h-12"
+                  style={{ top: "13%", right: "8%" }}
+                />
+                <div
+                  className="absolute border-white/90 border-b-[4px] border-l-[4px] w-10 h-10 sm:w-12 sm:h-12"
+                  style={{ bottom: "13%", left: "8%" }}
+                />
+                <div
+                  className="absolute border-white/90 border-b-[4px] border-r-[4px] w-10 h-10 sm:w-12 sm:h-12"
+                  style={{ bottom: "13%", right: "8%" }}
+                />
+
+                {/* Side accent lines */}
+                <div
+                  className="absolute left-[4.5%] w-[2px] rounded-full bg-blue-500/70"
+                  style={{ top: "30%", height: "24%" }}
+                />
+                <div
+                  className="absolute right-[4.5%] w-[2px] rounded-full bg-red-600/70"
+                  style={{ top: "30%", height: "24%" }}
+                />
+
+                {/* Bottom banner — blue with LOCAL TECH HUB */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-[11%] rounded-b-[2.5rem] flex items-center justify-center"
+                  style={{ background: "rgba(0,80,200,0.9)" }}
+                >
+                  <span className="text-white font-bold text-[9px] sm:text-[11px] tracking-[0.28em] uppercase">
+                    LOCAL TECH HUB
+                  </span>
                 </div>
               </div>
             </>
           )}
 
-          {/* Hidden Canvas for Drawing */}
+          {isCapturing && (
+            <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center rounded-[2.5rem]">
+              <span className="text-white font-bold text-sm animate-pulse">
+                Memproses...
+              </span>
+            </div>
+          )}
+
           <canvas ref={canvasRef} className="hidden" />
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-4 w-full">
           {!photoURL ? (
             <Button
               onClick={capturePhoto}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-16 rounded-2xl font-bold text-lg editorial-shadow transition-all duration-300 flex items-center gap-3"
+              disabled={isCapturing}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-16 rounded-2xl font-bold text-lg editorial-shadow transition-all duration-300 flex items-center gap-3 disabled:opacity-60"
             >
               <Camera className="w-6 h-6" />
-              Ambil Foto
+              {isCapturing ? "Memproses..." : "Ambil Foto"}
             </Button>
           ) : (
             <>
@@ -313,4 +582,19 @@ export default function TwibbonPage() {
       </div>
     </div>
   );
+}
+
+//Canvas helpers
+
+function drawDot(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  color: string,
+) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
 }

@@ -30,18 +30,54 @@ export default function CreateTeamPage() {
     description: "",
     instagram: "",
     linkedin: "",
+    github: "",
+    portfolio: "",
     order_index: 0,
     is_active: true,
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    let avatar_url = null;
+
+    if (avatarFile) {
+      const fileExt = avatarFile.name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("images")
+        .upload(filePath, avatarFile);
+
+      if (uploadError) {
+        toast.error("Gagal mengupload foto: " + uploadError.message);
+        setLoading(false);
+        return;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("images").getPublicUrl(filePath);
+
+      avatar_url = publicUrl;
+    }
+
     const { error } = await supabase.from("core_team").insert([
       {
         ...formData,
-        avatar_url: null,
+        avatar_url,
       },
     ]);
 
@@ -79,6 +115,35 @@ export default function CreateTeamPage() {
             <CardDescription>Data profil anggota team</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-4">
+              <Label>Foto Profil</Label>
+              <div className="flex items-center gap-4">
+                {avatarPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarPreview}
+                    alt="Preview"
+                    className="h-24 w-24 rounded-full object-cover border"
+                  />
+                ) : (
+                  <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center border border-dashed">
+                    <span className="text-xs text-muted-foreground">Upload</span>
+                  </div>
+                )}
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="w-[250px]"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Gunakan foto dengan aspek rasio 1:1 untuk hasil terbaik.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Nama Lengkap *</Label>
@@ -160,6 +225,34 @@ export default function CreateTeamPage() {
                     }))
                   }
                   placeholder="https://linkedin.com/in/username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="github">GitHub</Label>
+                <Input
+                  id="github"
+                  value={formData.github}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      github: e.target.value,
+                    }))
+                  }
+                  placeholder="https://github.com/username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="portfolio">Portfolio URL</Label>
+                <Input
+                  id="portfolio"
+                  value={formData.portfolio}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      portfolio: e.target.value,
+                    }))
+                  }
+                  placeholder="https://yourwebsite.com"
                 />
               </div>
             </div>

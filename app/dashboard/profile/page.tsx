@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { getCurrentUserTeamMember, updateOwnTeamProfile, changePassword } from "@/lib/supabase/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,21 +26,72 @@ export default function ProfilePage() {
     const [changingPassword, setChangingPassword] = useState(false);
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+    const supabase = createClient();
 
     useEffect(() => {
         async function loadProfile() {
             const data = await getCurrentUserTeamMember();
             setMember(data);
+            if (data?.avatar_url) {
+                setAvatarPreview(data.avatar_url);
+            }
             setLoading(false);
         }
         loadProfile();
     }, []);
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAvatarFile(file);
+            setAvatarPreview(URL.createObjectURL(file));
+        }
+    };
 
     const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setSaving(true);
 
         const formData = new FormData(e.currentTarget);
+        let avatar_url = member?.avatar_url || null;
+
+        if (avatarFile) {
+            if (member?.avatar_url) {
+                const urlParts = member.avatar_url.split("/images/");
+                if (urlParts.length > 1) {
+                    const oldFilePath = urlParts[1];
+                    await supabase.storage.from("images").remove([oldFilePath]);
+                }
+            }
+
+            const fileExt = avatarFile.name.split(".").pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const filePath = `avatars/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from("images")
+                .upload(filePath, avatarFile);
+
+            if (uploadError) {
+                toast.error("Gagal mengupload foto: " + uploadError.message);
+                setSaving(false);
+                return;
+            }
+
+            const {
+                data: { publicUrl },
+            } = supabase.storage.from("images").getPublicUrl(filePath);
+
+            avatar_url = publicUrl;
+        }
+
+        if (avatar_url) {
+            formData.append("avatar_url", avatar_url);
+        }
+
         const result = await updateOwnTeamProfile(formData);
 
         if (result.success) {
@@ -111,7 +163,37 @@ export default function ProfilePage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSaveProfile} className="space-y-4">
+                    <form onSubmit={handleSaveProfile} className="space-y-6">
+                        <div className="space-y-4">
+                            <Label>Foto Profil</Label>
+                            <div className="flex items-center gap-4">
+                                {avatarPreview ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                        src={avatarPreview}
+                                        alt="Preview"
+                                        className="h-24 w-24 rounded-full object-cover border"
+                                    />
+                                ) : (
+                                    <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center border border-dashed">
+                                        <span className="text-xs text-muted-foreground">Upload</span>
+                                    </div>
+                                )}
+                                <div>
+                                    <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleAvatarChange}
+                                        className="w-[250px]"
+                                        disabled={saving}
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        Gunakan foto dengan aspek rasio 1:1 untuk hasil terbaik.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="name">Nama Lengkap</Label>
                             <Input
@@ -153,6 +235,26 @@ export default function ProfilePage() {
                                     name="linkedin"
                                     defaultValue={member.linkedin || ""}
                                     placeholder="https://linkedin.com/in/username"
+                                    disabled={saving}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="github">GitHub URL</Label>
+                                <Input
+                                    id="github"
+                                    name="github"
+                                    defaultValue={member.github || ""}
+                                    placeholder="https://github.com/username"
+                                    disabled={saving}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="portfolio">Portfolio URL</Label>
+                                <Input
+                                    id="portfolio"
+                                    name="portfolio"
+                                    defaultValue={member.portfolio || ""}
+                                    placeholder="https://yourwebsite.com"
                                     disabled={saving}
                                 />
                             </div>

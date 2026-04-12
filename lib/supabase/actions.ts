@@ -238,12 +238,18 @@ export async function updateOwnTeamProfile(formData: FormData) {
         return { success: false, error: "Team profile not found" };
     }
 
-    const updates = {
+    const updates: any = {
         name: formData.get("name") as string,
         description: formData.get("description") as string,
         instagram: formData.get("instagram") as string,
         linkedin: formData.get("linkedin") as string,
+        github: formData.get("github") as string,
+        portfolio: formData.get("portfolio") as string,
     };
+    
+    if (formData.has("avatar_url")) {
+        updates.avatar_url = formData.get("avatar_url") as string;
+    }
 
     const { error } = await adminClient
         .from("core_team")

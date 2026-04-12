@@ -34,6 +34,8 @@ export interface CoreTeam {
   description: string | null;
   instagram: string | null;
   linkedin: string | null;
+  github: string | null;
+  portfolio: string | null;
   avatar_url: string | null;
   order_index: number;
   is_active: boolean;

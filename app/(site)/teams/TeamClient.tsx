@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef } from "react";
-import { Linkedin, Instagram } from "lucide-react";
+import { Linkedin, Instagram, Github, Globe } from "lucide-react";
 import { CoreTeam } from "@/lib/supabase/types";
 import { getPlaceholderAvatarUrl } from "@/lib/placeholder";
 import { useInView, motion } from "framer-motion";
@@ -119,6 +119,26 @@ const ModernTeamPage = ({ members }: TeamClientProps) => {
                     className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-muted/50 text-muted-foreground transition-all hover:bg-background hover:text-primary hover:border-primary/50 hover:shadow-md"
                   >
                     <Linkedin className="h-4 w-4" />
+                  </a>
+                )}
+                {member.github && (
+                  <a
+                    href={member.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-muted/50 text-muted-foreground transition-all hover:bg-background hover:text-foreground hover:border-border hover:shadow-md"
+                  >
+                    <Github className="h-4 w-4" />
+                  </a>
+                )}
+                {member.portfolio && (
+                  <a
+                    href={member.portfolio}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-muted/50 text-muted-foreground transition-all hover:bg-background hover:text-primary hover:border-primary/50 hover:shadow-md"
+                  >
+                    <Globe className="h-4 w-4" />
                   </a>
                 )}
                 {member.instagram && (

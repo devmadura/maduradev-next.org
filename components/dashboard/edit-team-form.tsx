@@ -35,17 +35,62 @@ export function EditTeamForm({ member }: EditTeamFormProps) {
     description: member.description || "",
     instagram: member.instagram || "",
     linkedin: member.linkedin || "",
+    github: member.github || "",
+    portfolio: member.portfolio || "",
     order_index: member.order_index,
     is_active: member.is_active,
   });
+
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(member.avatar_url || null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    let avatar_url = member.avatar_url;
+
+    if (avatarFile) {
+      if (member.avatar_url) {
+        const urlParts = member.avatar_url.split("/images/");
+        if (urlParts.length > 1) {
+          const oldFilePath = urlParts[1];
+          await supabase.storage.from("images").remove([oldFilePath]);
+        }
+      }
+
+      const fileExt = avatarFile.name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("images")
+        .upload(filePath, avatarFile);
+
+      if (uploadError) {
+        toast.error("Gagal mengupload foto: " + uploadError.message);
+        setLoading(false);
+        return;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("images").getPublicUrl(filePath);
+
+      avatar_url = publicUrl;
+    }
+
     const { error } = await supabase
       .from("core_team")
-      .update(formData)
+      .update({ ...formData, avatar_url })
       .eq("id", member.id);
 
     if (error) {
@@ -80,6 +125,35 @@ export function EditTeamForm({ member }: EditTeamFormProps) {
             <CardDescription>Data profil anggota team</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-4">
+              <Label>Foto Profil</Label>
+              <div className="flex items-center gap-4">
+                {avatarPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarPreview}
+                    alt="Preview"
+                    className="h-24 w-24 rounded-full object-cover border"
+                  />
+                ) : (
+                  <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center border border-dashed">
+                    <span className="text-xs text-muted-foreground">Upload</span>
+                  </div>
+                )}
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="w-[250px]"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Gunakan foto dengan aspek rasio 1:1 untuk hasil terbaik.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Nama Lengkap *</Label>
@@ -156,6 +230,34 @@ export function EditTeamForm({ member }: EditTeamFormProps) {
                       linkedin: e.target.value,
                     }))
                   }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="github">GitHub</Label>
+                <Input
+                  id="github"
+                  value={formData.github}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      github: e.target.value,
+                    }))
+                  }
+                  placeholder="https://github.com/username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="portfolio">Portfolio URL</Label>
+                <Input
+                  id="portfolio"
+                  value={formData.portfolio}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      portfolio: e.target.value,
+                    }))
+                  }
+                  placeholder="https://yourwebsite.com"
                 />
               </div>
             </div>

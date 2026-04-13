@@ -7,6 +7,7 @@ import {
   RefreshCcw,
   ArrowLeft,
   SwitchCamera,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export default function TwibbonPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   // Use a ref so capturePhoto always reads the latest value without stale closure
   const facingModeRef = useRef<"user" | "environment">("user");
 
@@ -389,6 +391,27 @@ export default function TwibbonPage() {
     startCamera(facingModeRef.current);
   };
 
+  const handleDownload = () => {
+    if (!photoURL) return;
+    setIsDownloading(true);
+
+    // Menerapkan sedikit delay untuk memberikan feedback visual UI saving
+    setTimeout(() => {
+      const timestamp = new Date().getTime();
+      const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      const filename = `MaduraDev_Twibbon_${timestamp}_${randomSuffix}.png`;
+      
+      const link = document.createElement("a");
+      link.href = photoURL;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setIsDownloading(false);
+    }, 600);
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col py-24">
       <div className="fixed inset-0 opacity-5 pointer-events-none z-0">
@@ -568,13 +591,21 @@ export default function TwibbonPage() {
                 Ulangi
               </Button>
               <Button
-                asChild
-                className="w-1/2 h-16 rounded-2xl font-bold text-primary-foreground bg-primary hover:bg-primary/90 editorial-shadow transition-all duration-300 flex items-center gap-2"
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="w-1/2 h-16 rounded-2xl font-bold text-primary-foreground bg-primary hover:bg-primary/90 editorial-shadow transition-all duration-300 flex items-center gap-2 disabled:opacity-70"
               >
-                <a href={photoURL} download="MaduraDev_Twibbon.png">
-                  <Download className="w-5 h-5" />
-                  Simpan
-                </a>
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-5 h-5" />
+                    Simpan
+                  </>
+                )}
               </Button>
             </>
           )}

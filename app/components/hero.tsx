@@ -21,7 +21,7 @@ const itemVariants: Variants = {
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-background py-12 md:py-24">
+    <section className="relative overflow-hidden bg-background pt-28 pb-12 md:py-24">
       {/* Dot Grid Background */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div

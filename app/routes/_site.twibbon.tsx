@@ -5,9 +5,11 @@ import {
   RefreshCcw,
   ArrowLeft,
   Loader2,
+  Upload,
 } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
+import { createClient as createBrowserClient } from "@/lib/supabase/client";
 
 function SwitchCameraIcon({ className }: { className?: string }) {
   return (
@@ -31,6 +33,7 @@ export const meta = () => [
 export default function TwibbonPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -38,6 +41,14 @@ export default function TwibbonPage() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const facingModeRef = useRef<"user" | "environment">("user");
+
+  // Custom Twibbon and Photo Alignment States
+  const [rawPhoto, setRawPhoto] = useState<string | null>(null);
+  const [customTemplateUrl, setCustomTemplateUrl] = useState<string | null>(null);
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const startCamera = useCallback(
     async (mode: "user" | "environment" = "user") => {
@@ -69,6 +80,28 @@ export default function TwibbonPage() {
 
   useEffect(() => {
     startCamera("user");
+
+    const checkCustomTemplate = async () => {
+      const supabase = createBrowserClient();
+      if (!supabase) return;
+      const { data: { publicUrl } } = supabase.storage
+        .from("images")
+        .getPublicUrl("twibbon/template.png");
+
+      try {
+        const res = await fetch(publicUrl, { method: "HEAD" });
+        if (res.ok) {
+          setCustomTemplateUrl(`${publicUrl}?t=${Date.now()}`);
+        } else {
+          setCustomTemplateUrl(null);
+        }
+      } catch (err) {
+        console.error("Custom template check error:", err);
+        setCustomTemplateUrl(null);
+      }
+    };
+    checkCustomTemplate();
+
     return () => {
       if (videoRef.current?.srcObject) {
         (videoRef.current.srcObject as MediaStream)
@@ -81,6 +114,45 @@ export default function TwibbonPage() {
   const toggleCamera = () => {
     const next = facingModeRef.current === "user" ? "environment" : "user";
     startCamera(next);
+  };
+
+  // Dragging event handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!rawPhoto) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !rawPhoto) return;
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!rawPhoto) return;
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !rawPhoto) return;
+    const touch = e.touches[0];
+    setPosition({
+      x: touch.clientX - dragStart.x,
+      y: touch.clientY - dragStart.y,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
   };
 
   const drawTwibbon = (
@@ -170,8 +242,7 @@ export default function TwibbonPage() {
 
   const capturePhoto = () => {
     const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    if (!video) return;
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
@@ -180,44 +251,118 @@ export default function TwibbonPage() {
       return;
     }
 
-    setIsCapturing(true);
+    const snapCanvas = document.createElement("canvas");
     const SIZE = 1080;
-    canvas.width = SIZE;
-    canvas.height = SIZE;
-    const ctx = canvas.getContext("2d")!;
-
+    snapCanvas.width = SIZE;
+    snapCanvas.height = SIZE;
+    const sCtx = snapCanvas.getContext("2d")!;
+    
     let sx = 0, sy = 0, sw = vw, sh = vh;
     if (vw > vh) { sw = vh; sx = (vw - sw) / 2; }
     else { sh = vw; sy = (vh - sh) / 2; }
 
-    const snap = document.createElement("canvas");
-    snap.width = SIZE; snap.height = SIZE;
-    const sCtx = snap.getContext("2d")!;
     if (facingModeRef.current === "user") {
       sCtx.translate(SIZE, 0); sCtx.scale(-1, 1);
     }
     sCtx.drawImage(video, sx, sy, sw, sh, 0, 0, SIZE, SIZE);
 
-    const compose = (logoImg: HTMLImageElement | null) => {
-      ctx.clearRect(0, 0, SIZE, SIZE);
-      ctx.drawImage(snap, 0, 0);
-      drawTwibbon(ctx, SIZE, logoImg);
-      setPhotoURL(canvas.toDataURL("image/png", 1.0));
-      setIsCapturing(false);
-      if (stream) { stream.getTracks().forEach((t) => t.stop()); setStream(null); }
-    };
+    setRawPhoto(snapCanvas.toDataURL("image/png", 1.0));
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
 
-    const logo = new Image();
-    logo.crossOrigin = "anonymous";
-    logo.src = "/logos/logo_madura_light.png";
-    const fallbackTimer = setTimeout(() => compose(null), 3000);
-    logo.onload = () => { clearTimeout(fallbackTimer); compose(logo); };
-    logo.onerror = () => { clearTimeout(fallbackTimer); compose(null); };
+    if (stream) { stream.getTracks().forEach((t) => t.stop()); setStream(null); }
   };
 
   const retakePhoto = () => {
     setPhotoURL(null);
+    setRawPhoto(null);
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
     startCamera(facingModeRef.current);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setRawPhoto(event.target?.result as string);
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+
+      if (stream) { stream.getTracks().forEach((t) => t.stop()); setStream(null); }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const composeFinalImage = () => {
+    if (!rawPhoto) return;
+
+    setIsCapturing(true);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const SIZE = 1080;
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+    const ctx = canvas.getContext("2d")!;
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, SIZE, SIZE);
+      ctx.save();
+      
+      // Calculate translation offset relative to the canvas 1080px size
+      const containerElement = canvas.parentElement?.querySelector(".aspect-square");
+      const previewSize = containerElement?.clientWidth || 343;
+      const scaleMultiplier = SIZE / previewSize;
+      
+      // Translate to center, apply preview translation offset, then apply scale
+      ctx.translate(SIZE / 2, SIZE / 2);
+      ctx.translate(position.x * scaleMultiplier, position.y * scaleMultiplier);
+      ctx.scale(scale, scale);
+      
+      // Calculate draw size to achieve "object-fit: cover" centering
+      let drawWidth = SIZE;
+      let drawHeight = SIZE;
+      if (img.naturalWidth > img.naturalHeight) {
+        drawHeight = SIZE;
+        drawWidth = SIZE * (img.naturalWidth / img.naturalHeight);
+      } else if (img.naturalWidth < img.naturalHeight) {
+        drawWidth = SIZE;
+        drawHeight = SIZE * (img.naturalHeight / img.naturalWidth);
+      }
+
+      // Draw the user image centered
+      ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+      ctx.restore();
+
+      const drawOverlay = (twibbonImg: HTMLImageElement | null) => {
+        if (twibbonImg) {
+          ctx.drawImage(twibbonImg, 0, 0, SIZE, SIZE);
+        } else {
+          drawTwibbon(ctx, SIZE, null);
+        }
+        setPhotoURL(canvas.toDataURL("image/png", 1.0));
+        setIsCapturing(false);
+      };
+
+      if (customTemplateUrl) {
+        const twibbon = new Image();
+        twibbon.crossOrigin = "anonymous";
+        twibbon.src = customTemplateUrl;
+        twibbon.onload = () => drawOverlay(twibbon);
+        twibbon.onerror = () => drawOverlay(null);
+      } else {
+        const logo = new Image();
+        logo.crossOrigin = "anonymous";
+        logo.src = "/logos/logo_madura_light.png";
+        logo.onload = () => drawOverlay(null);
+        logo.onerror = () => drawOverlay(null);
+      }
+    };
+    img.src = rawPhoto;
   };
 
   const handleDownload = () => {
@@ -234,7 +379,7 @@ export default function TwibbonPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col py-24 pt-28">
+    <div className="min-h-screen bg-background relative overflow-x-hidden overflow-y-auto flex flex-col pt-28 pb-32">
       <div className="fixed inset-0 opacity-5 pointer-events-none z-0">
         <div className="absolute inset-0" style={{
           backgroundImage: "radial-gradient(circle at 2px 2px, #0058be 1px, transparent 0)",
@@ -263,13 +408,56 @@ export default function TwibbonPage() {
         </div>
 
         <div className="w-full aspect-square relative rounded-[2.5rem] overflow-hidden editorial-shadow mb-8 bg-black flex items-center justify-center">
-          {cameraError && !photoURL ? (
-            <div className="text-center p-6">
+          {photoURL ? (
+            <img src={photoURL} alt="Twibbon Result" className="w-full h-full object-cover" />
+          ) : rawPhoto ? (
+            /* Interactive Drag-and-Drop Editor Preview */
+            <div 
+              className="absolute inset-0 w-full h-full overflow-hidden cursor-grab active:cursor-grabbing select-none"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <img
+                src={rawPhoto}
+                alt="Raw Preview"
+                className="absolute w-full h-full object-cover pointer-events-none"
+                style={{
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                  transition: isDragging ? "none" : "transform 0.1s ease-out"
+                }}
+              />
+              {/* Twibbon Overlay Frame */}
+              <div className="absolute inset-0 pointer-events-none">
+                {customTemplateUrl ? (
+                  <img src={customTemplateUrl} alt="Twibbon Template" className="w-full h-full object-contain" />
+                ) : (
+                  <div className="absolute inset-0">
+                    <div className="absolute top-0 left-0 right-0 h-[11%] rounded-t-[2.5rem]" style={{ background: "rgba(182,23,34,0.9)" }} />
+                    <div className="absolute left-1/2 -translate-x-1/2" style={{ top: "1%", width: "25%" }}>
+                      <img src="/logos/logo_madura_light.png" alt="MaduraDev" className="w-full h-auto drop-shadow-lg"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    </div>
+                    <div className="absolute border-white/90 border-t-[4px] border-l-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ top: "13%", left: "8%" }} />
+                    <div className="absolute border-white/90 border-t-[4px] border-r-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ top: "13%", right: "8%" }} />
+                    <div className="absolute border-white/90 border-b-[4px] border-l-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ bottom: "13%", left: "8%" }} />
+                    <div className="absolute border-white/90 border-b-[4px] border-r-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ bottom: "13%", right: "8%" }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[11%] rounded-b-[2.5rem] flex items-center justify-center" style={{ background: "rgba(0,80,200,0.9)" }}>
+                      <span className="text-white font-bold text-[9px] sm:text-[11px] tracking-[0.28em] uppercase">LOCAL TECH HUB</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : cameraError ? (
+            <div className="text-center p-6 bg-slate-900 w-full h-full flex flex-col justify-center items-center">
               <p className="text-destructive font-bold mb-2">Oops!</p>
               <p className="text-sm text-muted-foreground">{cameraError}</p>
             </div>
-          ) : photoURL ? (
-            <img src={photoURL} alt="Twibbon Result" className="w-full h-full object-cover" />
           ) : (
             <>
               <video ref={videoRef} autoPlay playsInline muted
@@ -278,20 +466,26 @@ export default function TwibbonPage() {
                 className="absolute top-4 right-4 z-50 p-3 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md transition-all border border-white/20">
                 <SwitchCameraIcon className="w-5 h-5" />
               </button>
-              {/* Preview twibbon overlay */}
+              {/* Preview twibbon overlay for active camera view */}
               <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-0 left-0 right-0 h-[11%] rounded-t-[2.5rem]" style={{ background: "rgba(182,23,34,0.9)" }} />
-                <div className="absolute left-1/2 -translate-x-1/2" style={{ top: "1%", width: "25%" }}>
-                  <img src="/logos/logo_madura_light.png" alt="MaduraDev" className="w-full h-auto drop-shadow-lg"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                </div>
-                <div className="absolute border-white/90 border-t-[4px] border-l-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ top: "13%", left: "8%" }} />
-                <div className="absolute border-white/90 border-t-[4px] border-r-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ top: "13%", right: "8%" }} />
-                <div className="absolute border-white/90 border-b-[4px] border-l-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ bottom: "13%", left: "8%" }} />
-                <div className="absolute border-white/90 border-b-[4px] border-r-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ bottom: "13%", right: "8%" }} />
-                <div className="absolute bottom-0 left-0 right-0 h-[11%] rounded-b-[2.5rem] flex items-center justify-center" style={{ background: "rgba(0,80,200,0.9)" }}>
-                  <span className="text-white font-bold text-[9px] sm:text-[11px] tracking-[0.28em] uppercase">LOCAL TECH HUB</span>
-                </div>
+                {customTemplateUrl ? (
+                  <img src={customTemplateUrl} alt="Twibbon Template" className="w-full h-full object-contain" />
+                ) : (
+                  <div className="absolute inset-0">
+                    <div className="absolute top-0 left-0 right-0 h-[11%] rounded-t-[2.5rem]" style={{ background: "rgba(182,23,34,0.9)" }} />
+                    <div className="absolute left-1/2 -translate-x-1/2" style={{ top: "1%", width: "25%" }}>
+                      <img src="/logos/logo_madura_light.png" alt="MaduraDev" className="w-full h-auto drop-shadow-lg"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    </div>
+                    <div className="absolute border-white/90 border-t-[4px] border-l-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ top: "13%", left: "8%" }} />
+                    <div className="absolute border-white/90 border-t-[4px] border-r-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ top: "13%", right: "8%" }} />
+                    <div className="absolute border-white/90 border-b-[4px] border-l-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ bottom: "13%", left: "8%" }} />
+                    <div className="absolute border-white/90 border-b-[4px] border-r-[4px] w-10 h-10 sm:w-12 sm:h-12" style={{ bottom: "13%", right: "8%" }} />
+                    <div className="absolute bottom-0 left-0 right-0 h-[11%] rounded-b-[2.5rem] flex items-center justify-center" style={{ background: "rgba(0,80,200,0.9)" }}>
+                      <span className="text-white font-bold text-[9px] sm:text-[11px] tracking-[0.28em] uppercase">LOCAL TECH HUB</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -301,23 +495,47 @@ export default function TwibbonPage() {
             </div>
           )}
           <canvas ref={canvasRef} className="hidden" />
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
         </div>
 
+        {/* Zoom Control Slider (visible only during adjustment) */}
+        {rawPhoto && !photoURL && (
+          <div className="w-full space-y-2 mb-6">
+            <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <span>Perbesar Gambar</span>
+              <span>{Math.round(scale * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="3.0"
+              step="0.01"
+              value={scale}
+              onChange={(e) => setScale(parseFloat(e.target.value))}
+              className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus:ring-0"
+            />
+            <p className="text-[11px] text-muted-foreground text-center">
+              Seret/geser foto di dalam bingkai untuk memposisikannya secara tepat.
+            </p>
+          </div>
+        )}
+
         <div className="flex gap-4 w-full">
-          {!photoURL ? (
-            <Button onClick={capturePhoto} disabled={isCapturing}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-16 rounded-2xl font-bold text-lg editorial-shadow transition-all duration-300 flex items-center gap-3 disabled:opacity-60">
-              <Camera className="w-6 h-6" />
-              {isCapturing ? "Memproses..." : "Ambil Foto"}
-            </Button>
-          ) : (
+          {photoURL ? (
+            /* Composed Twibbon View: Download Options */
             <>
               <Button onClick={retakePhoto} variant="outline"
-                className="w-1/2 h-16 rounded-2xl font-bold border-border text-foreground hover:bg-muted transition-all duration-300 flex items-center gap-2">
+                className="w-1/2 h-16 rounded-2xl font-bold border-border text-foreground hover:bg-muted transition-all duration-300 flex items-center justify-center gap-2">
                 <RefreshCcw className="w-5 h-5" /> Ulangi
               </Button>
               <Button onClick={handleDownload} disabled={isDownloading}
-                className="w-1/2 h-16 rounded-2xl font-bold text-primary-foreground bg-primary hover:bg-primary/90 editorial-shadow transition-all duration-300 flex items-center gap-2 disabled:opacity-70">
+                className="w-1/2 h-16 rounded-2xl font-bold text-primary-foreground bg-primary hover:bg-primary/90 editorial-shadow transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70">
                 {isDownloading ? (
                   <><Loader2 className="w-5 h-5 animate-spin" /> Menyimpan...</>
                 ) : (
@@ -325,6 +543,38 @@ export default function TwibbonPage() {
                 )}
               </Button>
             </>
+          ) : rawPhoto ? (
+            /* Adjustment View: Dragging options */
+            <>
+              <Button onClick={retakePhoto} variant="outline"
+                className="w-1/2 h-16 rounded-2xl font-bold border-border text-foreground hover:bg-muted transition-all duration-300 flex items-center justify-center gap-2">
+                <RefreshCcw className="w-5 h-5" /> Ulangi
+              </Button>
+              <Button onClick={composeFinalImage} disabled={isCapturing}
+                className="w-1/2 bg-primary text-primary-foreground hover:bg-primary/90 h-16 rounded-2xl font-bold text-lg editorial-shadow transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60">
+                {isCapturing ? "Memproses..." : "Proses Twibbon"}
+              </Button>
+            </>
+          ) : (
+            /* Initial View: Choose image sources */
+            cameraError ? (
+              <Button onClick={() => fileInputRef.current?.click()} disabled={isCapturing}
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-16 rounded-2xl font-bold text-lg editorial-shadow transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-60">
+                <Upload className="w-6 h-6" />
+                Pilih dari Galeri
+              </Button>
+            ) : (
+              <>
+                <Button onClick={() => fileInputRef.current?.click()} disabled={isCapturing} variant="outline"
+                  className="w-1/2 h-16 rounded-2xl font-bold border-border text-foreground hover:bg-muted transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60">
+                  <Upload className="w-5 h-5" /> Galeri
+                </Button>
+                <Button onClick={capturePhoto} disabled={isCapturing}
+                  className="w-1/2 bg-primary text-primary-foreground hover:bg-primary/90 h-16 rounded-2xl font-bold text-lg editorial-shadow transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60">
+                  <Camera className="w-5 h-5" /> Ambil Foto
+                </Button>
+              </>
+            )
           )}
         </div>
       </div>

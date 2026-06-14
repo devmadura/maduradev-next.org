@@ -5,7 +5,7 @@ const navItems = [
   { icon: Home, label: "Home", url: "/" },
   { icon: Users, label: "Team", url: "/teams" },
   { icon: Calendar, label: "Events", url: "/events" },
-  { icon: MessageSquare, label: "Forum", url: "#" },
+  { icon: MessageSquare, label: "Forum", url: "/telegram" },
 ];
 
 export default function MobileNav() {

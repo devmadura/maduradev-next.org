@@ -133,9 +133,6 @@ export default function TeamClient({ members }: TeamClientProps) {
                       }}
                     />
                   ) : null}
-                  <span className="absolute text-3xl font-black text-primary/30">
-                    {member.name.charAt(0)}
-                  </span>
                 </div>
               </div>
 

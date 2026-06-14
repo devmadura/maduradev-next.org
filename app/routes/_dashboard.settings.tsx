@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, Image, Trash } from "lucide-react";
 import { toast } from "sonner";
 
 export const meta = () => [
@@ -22,6 +22,12 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [passwords, setPasswords] = useState({ new: "", confirm: "" });
+  const [templatePreview, setTemplatePreview] = useState<string | null>(null);
+  const [templateTimestamp, setTemplateTimestamp] = useState(Date.now());
+  const [uploadingTemplate, setUploadingTemplate] = useState(false);
+  const [templateFile, setTemplateFile] = useState<File | null>(null);
+  const [hasCustomTemplate, setHasCustomTemplate] = useState(false);
+  const [resettingTemplate, setResettingTemplate] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -30,7 +36,88 @@ export default function SettingsPage() {
       if (user?.email) setEmail(user.email);
     };
     getUser();
+
+    const fetchTemplate = async () => {
+      if (!supabase) return;
+      const { data: { publicUrl } } = supabase.storage
+        .from("images")
+        .getPublicUrl("twibbon/template.png");
+      
+      try {
+        const res = await fetch(publicUrl, { method: "HEAD" });
+        if (res.ok) {
+          setTemplatePreview(publicUrl);
+          setHasCustomTemplate(true);
+        }
+      } catch (err) {
+        console.error("Template check error:", err);
+      }
+    };
+    fetchTemplate();
   }, []);
+
+  const handleTemplateFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type !== "image/png") {
+        toast.error("Format file harus PNG (transparan)");
+        return;
+      }
+      setTemplateFile(file);
+      setTemplatePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleTemplateUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase || !templateFile) return;
+
+    setUploadingTemplate(true);
+    const { error } = await supabase.storage
+      .from("images")
+      .upload("twibbon/template.png", templateFile, {
+        upsert: true,
+        contentType: "image/png"
+      });
+
+    if (error) {
+      toast.error("Gagal mengunggah template: " + error.message);
+      setUploadingTemplate(false);
+      return;
+    }
+
+    toast.success("Template Twibbon berhasil diperbarui");
+    setTemplateFile(null);
+    setHasCustomTemplate(true);
+    setTemplateTimestamp(Date.now());
+    setUploadingTemplate(false);
+  };
+
+  const handleResetTemplate = async () => {
+    if (!supabase) return;
+
+    if (!confirm("Apakah Anda yakin ingin menghapus template kustom dan kembali ke template default?")) {
+      return;
+    }
+
+    setResettingTemplate(true);
+    const { error } = await supabase.storage
+      .from("images")
+      .remove(["twibbon/template.png"]);
+
+    if (error) {
+      toast.error("Gagal menghapus template: " + error.message);
+      setResettingTemplate(false);
+      return;
+    }
+
+    toast.success("Template kustom berhasil dihapus. Kembali ke bingkai default.");
+    setTemplatePreview(null);
+    setHasCustomTemplate(false);
+    setTemplateFile(null);
+    setTemplateTimestamp(Date.now());
+    setResettingTemplate(false);
+  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +164,77 @@ export default function SettingsPage() {
             <Input value={email} disabled />
             <p className="text-xs text-muted-foreground">Email tidak dapat diubah</p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Template Twibbon</CardTitle>
+          <CardDescription>
+            Unggah bingkai template Twibbon kustom (format PNG transparan)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleTemplateUpload} className="space-y-6">
+            <div className="space-y-4">
+              <Label>Preview Bingkai Aktif</Label>
+              <div className="flex items-start gap-6 flex-col md:flex-row">
+                <div className="relative w-36 h-36 rounded-2xl border border-dashed flex items-center justify-center bg-slate-900 overflow-hidden shrink-0">
+                  {templatePreview && hasCustomTemplate ? (
+                    <img
+                      src={`${templatePreview}?t=${templateTimestamp}`}
+                      alt="Active Twibbon Template"
+                      className="w-full h-full object-contain"
+                      onError={() => setHasCustomTemplate(false)}
+                    />
+                  ) : (
+                    <div className="text-center p-3 text-xs text-muted-foreground flex flex-col items-center gap-2">
+                      <Image className="h-8 w-8 opacity-40" />
+                      <span>Bingkai Default Aktif</span>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-3 flex-1">
+                  <Input
+                    type="file"
+                    accept="image/png"
+                    onChange={handleTemplateFileChange}
+                    className="max-w-xs"
+                    disabled={uploadingTemplate}
+                  />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Unggah file gambar kustom format **PNG transparan** dengan aspek rasio **1:1 (Square)**, disarankan resolusi **1080x1080px**. Gambar ini akan menimpa bingkai bawaan pada halaman Twibbon.
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {templateFile && (
+                      <Button type="submit" disabled={uploadingTemplate} className="flex items-center gap-2">
+                        {uploadingTemplate ? (
+                          <><Loader2 className="h-4 w-4 animate-spin" /> Mengunggah...</>
+                        ) : (
+                          <><Upload className="h-4 w-4" /> Perbarui Template</>
+                        )}
+                      </Button>
+                    )}
+                    {hasCustomTemplate && !templateFile && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        disabled={resettingTemplate}
+                        onClick={handleResetTemplate}
+                        className="flex items-center gap-2"
+                      >
+                        {resettingTemplate ? (
+                          <><Loader2 className="h-4 w-4 animate-spin" /> Menghapus...</>
+                        ) : (
+                          <><Trash className="h-4 w-4" /> Reset ke Default</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
         </CardContent>
       </Card>
 

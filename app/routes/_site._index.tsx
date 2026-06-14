@@ -40,7 +40,7 @@ export default function Home() {
       <Hero />
       <Features />
       <Community />
-      <MapCommunityMadura communities={communities} maxLegend={2} />
+      <MapCommunityMadura communities={communities} maxLegend={1} />
       <CallToAction />
     </main>
   );

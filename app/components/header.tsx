@@ -1,5 +1,5 @@
-import { Search } from "lucide-react";
 import { Link, useLocation } from "react-router";
+import { SimpleThemeToggle } from "./simple-theme-toggle";
 
 const navLinks = [
   {
@@ -43,10 +43,8 @@ export default function Navbar() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-muted-foreground">
-            <Search size={20} />
-          </button>
-          <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-lg font-bold text-sm transition-all active:scale-95 shadow-lg shadow-primary/20">
+          <SimpleThemeToggle />
+          <button className="hidden sm:block bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-lg font-bold text-sm transition-all active:scale-95 shadow-lg shadow-primary/20">
             Join Now
           </button>
         </div>

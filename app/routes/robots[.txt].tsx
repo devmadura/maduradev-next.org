@@ -14,8 +14,6 @@ Disallow: /auth/
 # Sitemap
 Sitemap: ${SITE_URL}/sitemap.xml
 
-# Crawl-delay
-Crawl-delay: 1
 
 # Host
 Host: ${SITE_URL}

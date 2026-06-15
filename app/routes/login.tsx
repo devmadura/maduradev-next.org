@@ -4,8 +4,6 @@ import type { Route } from "./+types/login";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -187,7 +185,7 @@ export default function LoginPage() {
                     <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-foreground">
                       Email Address
                     </Label>
-                    <Input
+                    <input
                       id="email"
                       type="email"
                       placeholder="admin@maduradev.org"
@@ -195,7 +193,7 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       disabled={loading}
-                      className="h-12 px-4 rounded-xl bg-background/50 border-border/40 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm focus:ring-2 focus:ring-offset-2"
+                      className="flex h-12 w-full rounded-xl border border-border/40 bg-background/50 px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all font-medium"
                     />
                   </div>
 
@@ -203,7 +201,7 @@ export default function LoginPage() {
                     <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-foreground">
                       Password
                     </Label>
-                    <Input
+                    <input
                       id="password"
                       type="password"
                       placeholder="••••••••"
@@ -211,12 +209,15 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       disabled={loading}
-                      className="h-12 px-4 rounded-xl bg-background/50 border-border/40 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm focus:ring-2 focus:ring-offset-2"
+                      className="flex h-12 w-full rounded-xl border border-border/40 bg-background/50 px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all font-medium"
                     />
                   </div>
 
-                  <Button type="submit" disabled={loading}
-                    className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mt-2 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 cursor-pointer"
+                  >
                     {loading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -225,7 +226,7 @@ export default function LoginPage() {
                     ) : (
                       "Sign In"
                     )}
-                  </Button>
+                  </button>
                 </form>
               </CardContent>
             </Card>

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
+import { useFetcher } from "react-router";
 import { createClient } from "@/lib/supabase/client";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,17 +20,114 @@ export const meta = () => [
   { title: "Settings - Dashboard MaduraDev" },
 ];
 
+export async function action({ request }: { request: Request }) {
+  const supabase = createServerClient(request);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const adminClient = createAdminClient();
+  const { data: profile } = await adminClient
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.role !== "admin") {
+    return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "upload_template") {
+    const file = formData.get("template") as File;
+    if (!file) {
+      return new Response(JSON.stringify({ success: false, intent: "upload_template", error: "File template tidak ditemukan" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const { error } = await adminClient.storage
+        .from("images")
+        .upload("twibbon/template.png", buffer, {
+          upsert: true,
+          contentType: "image/png"
+        });
+
+      if (error) {
+        return new Response(JSON.stringify({ success: false, intent: "upload_template", error: error.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, intent: "upload_template" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ success: false, intent: "upload_template", error: err.message || "Gagal mengunggah file" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
+  if (intent === "reset_template") {
+    try {
+      const { error } = await adminClient.storage
+        .from("images")
+        .remove(["twibbon/template.png"]);
+
+      if (error) {
+        return new Response(JSON.stringify({ success: false, intent: "reset_template", error: error.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, intent: "reset_template" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ success: false, intent: "reset_template", error: err.message || "Gagal menghapus file" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
+  return new Response(JSON.stringify({ success: false, intent: intent || "unknown", error: "Aksi tidak dikenal" }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 export default function SettingsPage() {
   const supabase = createClient();
+  const fetcher = useFetcher<{ success: boolean; intent: string; error?: string }>();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [passwords, setPasswords] = useState({ new: "", confirm: "" });
   const [templatePreview, setTemplatePreview] = useState<string | null>(null);
   const [templateTimestamp, setTemplateTimestamp] = useState(Date.now());
-  const [uploadingTemplate, setUploadingTemplate] = useState(false);
   const [templateFile, setTemplateFile] = useState<File | null>(null);
   const [hasCustomTemplate, setHasCustomTemplate] = useState(false);
-  const [resettingTemplate, setResettingTemplate] = useState(false);
+
+  const uploadingTemplate = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "upload_template";
+  const resettingTemplate = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "reset_template";
 
   useEffect(() => {
     const getUser = async () => {
@@ -56,6 +156,26 @@ export default function SettingsPage() {
     fetchTemplate();
   }, []);
 
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      if (fetcher.data.success) {
+        if (fetcher.data.intent === "upload_template") {
+          toast.success("Template Twibbon berhasil diperbarui");
+          setTemplateFile(null);
+          setHasCustomTemplate(true);
+        } else if (fetcher.data.intent === "reset_template") {
+          toast.success("Template kustom berhasil dihapus. Kembali ke bingkai default.");
+          setTemplatePreview(null);
+          setHasCustomTemplate(false);
+          setTemplateFile(null);
+        }
+        setTemplateTimestamp(Date.now());
+      } else {
+        toast.error("Gagal: " + (fetcher.data.error || "Terjadi kesalahan"));
+      }
+    }
+  }, [fetcher.state, fetcher.data]);
+
   const handleTemplateFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -70,53 +190,29 @@ export default function SettingsPage() {
 
   const handleTemplateUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase || !templateFile) return;
+    if (!templateFile) return;
 
-    setUploadingTemplate(true);
-    const { error } = await supabase.storage
-      .from("images")
-      .upload("twibbon/template.png", templateFile, {
-        upsert: true,
-        contentType: "image/png"
-      });
+    const formData = new FormData();
+    formData.append("intent", "upload_template");
+    formData.append("template", templateFile);
 
-    if (error) {
-      toast.error("Gagal mengunggah template: " + error.message);
-      setUploadingTemplate(false);
-      return;
-    }
-
-    toast.success("Template Twibbon berhasil diperbarui");
-    setTemplateFile(null);
-    setHasCustomTemplate(true);
-    setTemplateTimestamp(Date.now());
-    setUploadingTemplate(false);
+    fetcher.submit(formData, {
+      method: "POST",
+      encType: "multipart/form-data",
+    });
   };
 
   const handleResetTemplate = async () => {
-    if (!supabase) return;
-
     if (!confirm("Apakah Anda yakin ingin menghapus template kustom dan kembali ke template default?")) {
       return;
     }
 
-    setResettingTemplate(true);
-    const { error } = await supabase.storage
-      .from("images")
-      .remove(["twibbon/template.png"]);
+    const formData = new FormData();
+    formData.append("intent", "reset_template");
 
-    if (error) {
-      toast.error("Gagal menghapus template: " + error.message);
-      setResettingTemplate(false);
-      return;
-    }
-
-    toast.success("Template kustom berhasil dihapus. Kembali ke bingkai default.");
-    setTemplatePreview(null);
-    setHasCustomTemplate(false);
-    setTemplateFile(null);
-    setTemplateTimestamp(Date.now());
-    setResettingTemplate(false);
+    fetcher.submit(formData, {
+      method: "POST",
+    });
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {

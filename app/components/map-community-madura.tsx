@@ -3,7 +3,6 @@ import { motion } from "motion/react";
 import { Link } from "react-router";
 import { Map, Mail, ArrowRight } from "lucide-react";
 import type { Community } from "@/lib/supabase/types";
-import { groupCommunitiesByRegion } from "@/lib/community";
 import "leaflet/dist/leaflet.css";
 
 function InstagramIcon({
@@ -109,28 +108,32 @@ function LeafletMap({ communities }: { communities: Community[] }) {
 
     if (communities.length === 0) return;
 
-    // Group communities by region for offset positioning
-    const grouped = groupCommunitiesByRegion(communities);
+    // Group communities by exact coordinates to prevent overlaps
+    const groupedByCoords: Record<string, Community[]> = {};
+    communities.forEach((c) => {
+      // Use 5 decimal places precision (approx 1 meter)
+      const key = `${c.latitude.toFixed(5)},${c.longitude.toFixed(5)}`;
+      if (!groupedByCoords[key]) {
+        groupedByCoords[key] = [];
+      }
+      groupedByCoords[key].push(c);
+    });
 
-    // Calculate offset positions for communities in the same region
+    // Calculate offset positions for communities at the exact same location
     const communityPositions: Record<string, [number, number]> = {};
-    Object.entries(grouped).forEach(([_, regionCommunities]) => {
-      if (regionCommunities.length === 1) {
-        const c = regionCommunities[0];
+    Object.entries(groupedByCoords).forEach(([coordKey, coordCommunities]) => {
+      if (coordCommunities.length === 1) {
+        const c = coordCommunities[0];
         communityPositions[c.id] = [c.latitude, c.longitude];
       } else {
-        const centerLat =
-          regionCommunities.reduce((s, c) => s + c.latitude, 0) /
-          regionCommunities.length;
-        const centerLng =
-          regionCommunities.reduce((s, c) => s + c.longitude, 0) /
-          regionCommunities.length;
-        const offsetStep = 0.03;
-        regionCommunities.forEach((c, i) => {
-          const angle = (2 * Math.PI * i) / regionCommunities.length;
+        const [lat, lng] = coordKey.split(",").map(Number);
+        // Apply a tiny offset step (approx 15-20 meters) so overlapping pins are distinguishable
+        const offsetStep = 0.00015;
+        coordCommunities.forEach((c, i) => {
+          const angle = (2 * Math.PI * i) / coordCommunities.length;
           communityPositions[c.id] = [
-            centerLat + offsetStep * Math.sin(angle),
-            centerLng + offsetStep * Math.cos(angle),
+            lat + offsetStep * Math.sin(angle),
+            lng + offsetStep * Math.cos(angle),
           ];
         });
       }

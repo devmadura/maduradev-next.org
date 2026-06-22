@@ -5,10 +5,21 @@ import { getPlaceholderAvatarUrl } from "@/lib/placeholder";
 
 export const meta = () => [
   { title: "Core Team - MaduraDev" },
-  { name: "description", content: "Tim inti MaduraDev: para developer dan kontributor aktif yang membangun komunitas developer di Pulau Madura." },
-  { name: "keywords", content: "core team maduradev, tim developer madura, kontributor maduradev, anggota komunitas madura" },
+  {
+    name: "description",
+    content:
+      "Tim inti MaduraDev: para developer dan kontributor aktif yang membangun komunitas developer di Pulau Madura.",
+  },
+  {
+    name: "keywords",
+    content:
+      "core team maduradev, tim developer madura, kontributor maduradev, anggota komunitas madura",
+  },
   { property: "og:title", content: "Core Team - MaduraDev" },
-  { property: "og:description", content: "Kenali tim inti di balik komunitas developer MaduraDev." },
+  {
+    property: "og:description",
+    content: "Kenali tim inti di balik komunitas developer MaduraDev.",
+  },
   { property: "og:image", content: "/image.jpg" },
   { name: "twitter:card", content: "summary_large_image" },
 ];
@@ -47,7 +58,7 @@ export default function TeamsPage({ loaderData }: Route.ComponentProps) {
   const { members } = loaderData;
 
   return (
-    <div className="pt-20">
+    <div className="pt-5">
       <TeamClient members={members} />
     </div>
   );

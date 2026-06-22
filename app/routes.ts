@@ -7,6 +7,7 @@ export default [
     route("events", "routes/_site.events.tsx"),
     route("events/:slug", "routes/_site.events.$slug.tsx"),
     route("teams", "routes/_site.teams.tsx"),
+    route("teams/:slug", "routes/_site.teams.$slug.tsx"),
     route("twibbon", "routes/_site.twibbon.tsx"),
     route("community", "routes/_site.community.tsx"),
   ]),

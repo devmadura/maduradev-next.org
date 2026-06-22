@@ -1,6 +1,16 @@
 import { useRef } from "react";
 import { useInView, motion } from "motion/react";
+import { Link } from "react-router";
 import { Globe } from "lucide-react";
+
+function nameToSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+}
 
 function LinkedinIcon({ className }: { className?: string }) {
   return (
@@ -50,44 +60,44 @@ export default function TeamClient({ members }: TeamClientProps) {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 },
+      transition: { staggerChildren: 0.08 },
     },
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 24, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.5 },
+      transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
     },
   };
 
   return (
     <section className="py-24 bg-background relative overflow-hidden">
       {/* Dot Grid Background */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
         <div
           className="absolute inset-0"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 2px 2px, #0058be 1px, transparent 0)",
-            backgroundSize: "40px 40px",
+              "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
+            backgroundSize: "32px 32px",
           }}
         />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10" ref={ref}>
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
           <motion.div
             className="max-w-xl"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full mb-6">
-              <span className="font-label text-[10px] font-bold uppercase tracking-widest">
+              <span className="text-[10px] font-bold uppercase tracking-widest">
                 Our Base
               </span>
             </div>
@@ -108,7 +118,7 @@ export default function TeamClient({ members }: TeamClientProps) {
 
         {/* Team Grid */}
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
@@ -116,63 +126,77 @@ export default function TeamClient({ members }: TeamClientProps) {
           {members.map((member) => (
             <motion.div
               key={member.id}
-              className="bg-card p-8 rounded-3xl border border-border/50 group hover:border-primary/50 transition-all duration-300 editorial-shadow hover:-translate-y-2 flex flex-col items-center text-center"
+              className="group relative bg-card p-6 rounded-2xl border border-border/60 hover:border-primary/40 transition-all duration-300 hover:-translate-y-1"
               variants={itemVariants}
             >
+              <Link
+                to={`/teams/${nameToSlug(member.name)}`}
+                className="absolute inset-0 z-10"
+                aria-label={`Lihat profil ${member.name}`}
+              />
               {/* Avatar */}
-              <div className="relative w-28 h-28 mb-6">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary/50 blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
-                <div className="relative w-full h-full bg-background rounded-full p-1 border border-border group-hover:border-primary/30 transition-colors overflow-hidden flex items-center justify-center">
+              <div className="relative w-24 h-24 mx-auto mb-5">
+                <div className="relative w-full h-full rounded-full overflow-hidden bg-secondary border-2 border-background">
                   {member.avatar_url ? (
                     <img
                       src={member.avatar_url}
                       alt={member.name}
-                      className="w-full h-full rounded-full object-cover"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                       }}
                     />
-                  ) : null}
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl font-display font-bold text-muted-foreground/40">
+                      {member.name.charAt(0)}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Content */}
-              <h4 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300 mb-1">
-                {member.name}
-              </h4>
-              <div className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-                {member.position}
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed flex-grow">
-                {member.description || "Core member of MaduraDev"}
-              </p>
+              <div className="text-center">
+                <h4 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors duration-200 mb-1">
+                  {member.name}
+                </h4>
+                <div className="inline-block px-2.5 py-0.5 bg-secondary/80 text-secondary-foreground rounded text-[10px] font-bold uppercase tracking-widest mb-3">
+                  {member.position}
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                  {member.description || "Core member of MaduraDev"}
+                </p>
 
-              {/* Social Links */}
-              <div className="flex items-center justify-center gap-3 mt-6">
-                {member.linkedin && (
-                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-muted/50 text-muted-foreground transition-all hover:bg-background hover:text-primary hover:border-primary/50 hover:shadow-md">
-                    <LinkedinIcon className="h-4 w-4" />
-                  </a>
-                )}
-                {member.github && (
-                  <a href={member.github} target="_blank" rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-muted/50 text-muted-foreground transition-all hover:bg-background hover:text-foreground hover:border-border hover:shadow-md">
-                    <GithubIcon className="h-4 w-4" />
-                  </a>
-                )}
-                {member.portfolio && (
-                  <a href={member.portfolio} target="_blank" rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-muted/50 text-muted-foreground transition-all hover:bg-background hover:text-primary hover:border-primary/50 hover:shadow-md">
-                    <Globe className="h-4 w-4" />
-                  </a>
-                )}
-                {member.instagram && (
-                  <a href={member.instagram} target="_blank" rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-muted/50 text-muted-foreground transition-all hover:bg-background hover:text-pink-600 hover:border-pink-500/50 hover:shadow-md">
-                    <InstagramIcon className="h-4 w-4" />
-                  </a>
-                )}
+                {/* Social Links */}
+                <div className="flex items-center justify-center gap-2 relative z-20">
+                  {member.linkedin && (
+                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/50 bg-muted/30 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary hover:border-primary/30">
+                      <LinkedinIcon className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  {member.github && (
+                    <a href={member.github} target="_blank" rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/50 bg-muted/30 text-muted-foreground transition-all hover:bg-foreground/5 hover:text-foreground hover:border-border">
+                      <GithubIcon className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  {member.portfolio && (
+                    <a href={member.portfolio} target="_blank" rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/50 bg-muted/30 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary hover:border-primary/30">
+                      <Globe className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  {member.instagram && (
+                    <a href={member.instagram} target="_blank" rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/50 bg-muted/30 text-muted-foreground transition-all hover:bg-pink-500/10 hover:text-pink-500 hover:border-pink-500/30">
+                      <InstagramIcon className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}

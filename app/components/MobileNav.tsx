@@ -1,9 +1,12 @@
 import { Home, Users, Calendar, MessageSquare, Camera } from "lucide-react";
 import { Link, useLocation } from "react-router";
 
-const navItems = [
+const leftItems = [
   { icon: Home, label: "Home", url: "/" },
-  { icon: Users, label: "Team", url: "/teams" },
+  { icon: Users, label: "Teams", url: "/teams" },
+];
+
+const rightItems = [
   { icon: Calendar, label: "Events", url: "/events" },
   { icon: MessageSquare, label: "Forum", url: "/telegram" },
 ];
@@ -11,49 +14,101 @@ const navItems = [
 export default function MobileNav() {
   const pathname = useLocation().pathname;
 
+  const isActive = (url: string) =>
+    url === "/" ? pathname === "/" : pathname?.startsWith(url);
+
   return (
-    <nav className="fixed md:hidden bottom-0 left-0 right-0 glass-nav border-t border-border/40 px-6 py-3 z-50 flex justify-between items-center pb-8 bg-background/60 backdrop-blur-md">
-      {navItems.slice(0, 2).map(({ icon: Icon, label, url }) => {
-        const active = url === '/' ? pathname === '/' : pathname?.startsWith(url);
-        return (
+    <nav className="fixed md:hidden bottom-0 left-0 right-0 z-50">
+      <div className="relative bg-background/70 backdrop-blur-xl backdrop-saturate-150 border-t border-border/30">
+        <div className="flex justify-between items-end px-4 pt-3 pb-8">
+          {/* Left tabs */}
+          {leftItems.map(({ icon: Icon, label, url }) => (
+            <Link
+              key={label}
+              to={url}
+              className="flex flex-col items-center gap-0.5 min-w-14 py-1"
+            >
+              <div
+                className={`
+                  w-7 h-7 flex items-center justify-center rounded-full
+                  transition-all duration-200 ease-out
+                  ${isActive(url) ? "bg-primary/10" : ""}
+                `}
+              >
+                <Icon
+                  size={22}
+                  strokeWidth={isActive(url) ? 2.2 : 1.8}
+                  className={`
+                    transition-colors duration-200
+                    ${isActive(url) ? "text-primary" : "text-muted-foreground"}
+                  `}
+                />
+              </div>
+              <span
+                className={`
+                  text-[10px] leading-none tracking-regular
+                  transition-colors duration-200
+                  ${isActive(url) ? "text-primary font-medium" : "text-muted-foreground"}
+                `}
+              >
+                {label}
+              </span>
+            </Link>
+          ))}
+
+          {/* Center camera button - subtle floating style */}
           <Link
-            key={label}
-            to={url}
-            className={`flex flex-col items-center gap-1 ${active ? "text-primary" : "text-muted-foreground"}`}
+            to="/twibbon"
+            className="flex flex-col items-center gap-0.5 min-w-14 py-1 -mt-3"
           >
-            <Icon size={24} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              {label}
+            <div className="w-12 h-12 bg-primary/90 rounded-full flex items-center justify-center shadow-lg shadow-primary/20 active:scale-95 transition-transform duration-150">
+              <Camera
+                size={24}
+                strokeWidth={2}
+                className="text-primary-foreground"
+              />
+            </div>
+            <span className="text-[10px] leading-none tracking-regular text-muted-foreground">
+              Twibbon
             </span>
           </Link>
-        );
-      })}
 
-      {/* Center FAB */}
-      <div className="relative -top-8">
-        <Link
-          to="/twibbon"
-          className="w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/30 flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
-        >
-          <Camera size={32} />
-        </Link>
+          {/* Right tabs */}
+          {rightItems.map(({ icon: Icon, label, url }) => (
+            <Link
+              key={label}
+              to={url}
+              className="flex flex-col items-center gap-0.5 min-w-14 py-1"
+            >
+              <div
+                className={`
+                  w-7 h-7 flex items-center justify-center rounded-full
+                  transition-all duration-200 ease-out
+                  ${isActive(url) ? "bg-primary/10" : ""}
+                `}
+              >
+                <Icon
+                  size={22}
+                  strokeWidth={isActive(url) ? 2.2 : 1.8}
+                  className={`
+                    transition-colors duration-200
+                    ${isActive(url) ? "text-primary" : "text-muted-foreground"}
+                  `}
+                />
+              </div>
+              <span
+                className={`
+                  text-[10px] leading-none tracking-regular
+                  transition-colors duration-200
+                  ${isActive(url) ? "text-primary font-medium" : "text-muted-foreground"}
+                `}
+              >
+                {label}
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
-
-      {navItems.slice(2).map(({ icon: Icon, label, url }) => {
-        const active = url === '/' ? pathname === '/' : pathname?.startsWith(url);
-        return (
-          <Link
-            key={label}
-            to={url}
-            className={`flex flex-col items-center gap-1 ${active ? "text-primary" : "text-muted-foreground"}`}
-          >
-            <Icon size={24} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              {label}
-            </span>
-          </Link>
-        );
-      })}
     </nav>
   );
 }

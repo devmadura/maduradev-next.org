@@ -1,5 +1,6 @@
 import { redirect } from "react-router";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
@@ -10,15 +11,56 @@ export async function action({ request }: { request: Request }) {
   }
 
   const supabase = createClient(request);
-  const { error } = await supabase.from("events").delete().eq("id", id);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized: Please log in." };
+  }
+
+  const adminClient = createAdminClient();
+  const { data: profile } = await adminClient
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.role !== "admin") {
+    return { success: false, error: "Forbidden: Admin access required." };
+  }
+
+  // 1. Get the event's image_url to delete it from storage
+  const { data: eventData } = await adminClient
+    .from("events")
+    .select("image_url")
+    .eq("id", id)
+    .single();
+
+  if (eventData?.image_url) {
+    try {
+      const url = new URL(eventData.image_url);
+      const pathParts = url.pathname.split("/storage/v1/object/public/");
+      if (pathParts.length > 1) {
+        const [bucketName, ...filePath] = pathParts[1].split("/");
+        await adminClient.storage.from(bucketName).remove([filePath.join("/")]);
+      }
+    } catch (e) {
+      console.error("Gagal menghapus gambar dari storage:", e);
+    }
+  }
+
+  // 2. Delete the record from events table
+  const { error } = await adminClient.from("events").delete().eq("id", id);
 
   if (error) {
     return { success: false, error: error.message };
   }
 
-  return redirect("/dashboard/events");
+  return { success: true };
 }
 
 export async function loader() {
   throw redirect("/dashboard/events");
 }
+

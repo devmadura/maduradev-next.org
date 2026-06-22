@@ -17,6 +17,7 @@ export default [
     route("events", "routes/_dashboard.events.tsx"),
     route("events/create", "routes/_dashboard.events.create.tsx"),
     route("events/:id/edit", "routes/_dashboard.events.$id.edit.tsx"),
+    route("events/:id", "routes/_dashboard.events.$id.tsx"),
     route("team", "routes/_dashboard.team.tsx"),
     route("team/create", "routes/_dashboard.team.create.tsx"),
     route("team/:id/edit", "routes/_dashboard.team.$id.edit.tsx"),

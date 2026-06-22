@@ -1,8 +1,8 @@
 import type { Route } from "./+types/_site.events";
 import { createClient } from "@/lib/supabase/server";
 import { getAllEvents } from "@/lib/event";
-import EventClient from "@/components/event/EventClient";
 import ListEvent from "@/components/event/list-event";
+import { motion, type Variants } from "motion/react";
 
 export const meta: Route.MetaFunction = () => [
   { title: "Events - MaduraDev" },
@@ -20,13 +20,56 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { events };
 }
 
+const headerVariants: Variants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+};
+
 export default function EventsPage({ loaderData }: Route.ComponentProps) {
   const { events } = loaderData;
 
   return (
-    <div className="pt-20">
-      <EventClient />
-      <div className="container px-4 md:px-6 py-4 md:py-6 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background relative overflow-hidden pt-28 pb-16">
+      {/* Background Glows */}
+      <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-3xl pointer-events-none z-0" />
+
+      {/* Dot Grid Background */}
+      <div className="fixed inset-0 opacity-5 pointer-events-none z-0">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 2px 2px, #0058be 1px, transparent 0)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 container px-6 max-w-7xl mx-auto space-y-12">
+        {/* Animated Page Header */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={headerVariants}
+          className="max-w-3xl space-y-4"
+        >
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">
+            Event Directory
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight font-display text-foreground leading-[1.1]">
+            Jelajahi <span className="text-primary italic">Event & Workshop</span>
+          </h1>
+          <p className="text-muted-foreground text-sm md:text-base leading-relaxed max-w-2xl">
+            Tingkatkan keahlian coding, ikuti bedah buku teknologi terbaru, dan perluas jaringan profesional Anda bersama komunitas pengembang di Madura.
+          </p>
+        </motion.div>
+
+        {/* Event List Component with filters and grids */}
         <ListEvent events={events} />
       </div>
     </div>

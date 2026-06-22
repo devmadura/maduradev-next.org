@@ -1,6 +1,6 @@
 export type UserRole = "admin" | "core_team";
 
-export type EventFormat = "webinar" | "workshop" | "bootcamp" | "bincang-bincang";
+export type EventFormat = "webinar" | "workshop" | "bootcamp" | "bincang-bincang" | "hackathon";
 
 export interface UserProfile {
   id: string;
@@ -24,6 +24,9 @@ export interface Event {
   is_online: boolean;
   is_new: boolean;
   is_published: boolean;
+  rsvp_enabled: boolean;
+  max_attendees: number | null;
+  type: "internal" | "partner" | null;
   created_at?: string;
   updated_at?: string;
 }

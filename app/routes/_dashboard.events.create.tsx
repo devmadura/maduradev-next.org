@@ -50,6 +50,9 @@ export default function CreateEventPage() {
     is_online: false,
     is_new: true,
     is_published: false,
+    type: "internal" as "internal" | "partner",
+    rsvp_enabled: false,
+    max_attendees: "",
   });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +75,12 @@ export default function CreateEventPage() {
       return;
     }
 
-    const { error } = await supabase.from("events").insert([formData]);
+    const payload = {
+      ...formData,
+      max_attendees: formData.rsvp_enabled && formData.max_attendees !== "" ? Number(formData.max_attendees) : null,
+    };
+
+    const { error } = await supabase.from("events").insert([payload]);
 
     if (error) {
       toast.error("Gagal membuat event: " + error.message);
@@ -152,6 +160,7 @@ export default function CreateEventPage() {
                   <SelectItem value="workshop">Workshop</SelectItem>
                   <SelectItem value="bootcamp">Bootcamp</SelectItem>
                   <SelectItem value="bincang-bincang">Bincang-bincang</SelectItem>
+                  <SelectItem value="hackathon">Hackathon</SelectItem>
                 </ControlledSelect>
               </div>
               <div className="space-y-2">
@@ -164,6 +173,21 @@ export default function CreateEventPage() {
                   }
                   placeholder="https://example.com/register"
                 />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="type">Tipe Event *</Label>
+                <ControlledSelect
+                  value={formData.type}
+                  onValueChange={(value: string) =>
+                    setFormData((prev) => ({ ...prev, type: value as "internal" | "partner" }))
+                  }
+                >
+                  <SelectItem value="internal">Internal MaduraDev</SelectItem>
+                  <SelectItem value="partner">Partner Event</SelectItem>
+                </ControlledSelect>
               </div>
             </div>
 
@@ -185,7 +209,7 @@ export default function CreateEventPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Deskripsi Lengkap (HTML)</Label>
+              <Label htmlFor="description">Deskripsi Lengkap (Markdown)</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -195,7 +219,7 @@ export default function CreateEventPage() {
                     description: e.target.value,
                   }))
                 }
-                placeholder="<p>Deskripsi lengkap event...</p>"
+                placeholder="Deskripsi lengkap event (Mendukung Markdown)..."
                 rows={6}
               />
             </div>
@@ -213,6 +237,7 @@ export default function CreateEventPage() {
                 <Label htmlFor="event_date">Tanggal *</Label>
                 <Input
                   id="event_date"
+                  type="date"
                   value={formData.event_date}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -220,7 +245,6 @@ export default function CreateEventPage() {
                       event_date: e.target.value,
                     }))
                   }
-                  placeholder="6 December 2025"
                   required
                 />
               </div>
@@ -228,6 +252,7 @@ export default function CreateEventPage() {
                 <Label htmlFor="event_time">Waktu *</Label>
                 <Input
                   id="event_time"
+                  type="time"
                   value={formData.event_time}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -235,21 +260,20 @@ export default function CreateEventPage() {
                       event_time: e.target.value,
                     }))
                   }
-                  placeholder="09:00 - 16:00 WIB"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Lokasi (HTML)</Label>
+              <Label htmlFor="location">Lokasi (Markdown)</Label>
               <Textarea
                 id="location"
                 value={formData.location}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, location: e.target.value }))
                 }
-                placeholder="<a href='maps-link'>Nama tempat, alamat</a>"
+                placeholder="Nama tempat, alamat (Mendukung Markdown)..."
                 rows={2}
               />
             </div>
@@ -304,6 +328,38 @@ export default function CreateEventPage() {
                 }
               />
             </div>
+            {formData.type === "internal" && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Aktifkan RSVP</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Buka pendaftaran RSVP di detail event
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.rsvp_enabled}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({ ...prev, rsvp_enabled: checked }))
+                    }
+                  />
+                </div>
+                {formData.rsvp_enabled && (
+                  <div className="space-y-2">
+                    <Label htmlFor="max_attendees">Batas Maksimal Peserta</Label>
+                    <Input
+                      id="max_attendees"
+                      type="number"
+                      value={formData.max_attendees}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, max_attendees: e.target.value }))
+                      }
+                      placeholder="Kosongkan jika tidak terbatas"
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
 

@@ -1,8 +1,24 @@
-import type { Route } from "./+types/_site.events.$slug";
+// Verification Comment
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getEvent, isEventNew } from "@/lib/event";
-import { Link } from "react-router";
+import {
+  Link,
+  Form,
+  useActionData,
+  useNavigation,
+  useLoaderData,
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+  type MetaFunction,
+} from "react-router";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectItem } from "@/components/ui/select";
 import {
   Calendar,
   Clock,
@@ -11,20 +27,193 @@ import {
   ExternalLink,
   ArrowLeft,
   Globe,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
+import { motion, type Variants } from "motion/react";
 
-export async function loader({ request, params }: Route.LoaderArgs) {
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.5 },
+  },
+};
+
+
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const supabase = createClient(request);
-  const event = await getEvent(supabase, params.slug);
+  const slug = params.slug!;
+  const event = await getEvent(supabase, slug);
 
   if (!event) {
     throw new Response("Event tidak ditemukan", { status: 404 });
   }
 
-  return { event, isNew: isEventNew(event.tanggal) };
+  let registrationCount = 0;
+  let currentUserRegistration = null;
+  let loggedInUser = null;
+
+  if (event.type === "internal" && event.rsvp_enabled) {
+    const adminClient = createAdminClient();
+
+    // Fetch count of registrations
+    const { count, error: countError } = await adminClient
+      .from("event_registrations")
+      .select("*", { count: "exact", head: true })
+      .eq("event_id", event.id);
+
+    if (!countError && count !== null) {
+      registrationCount = count;
+    }
+
+    // Fetch logged in user and check if already registered
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      loggedInUser = {
+        email: user.email || "",
+        name: user.user_metadata?.full_name || "",
+      };
+
+      const { data: regData } = await adminClient
+        .from("event_registrations")
+        .select("*")
+        .eq("event_id", event.id)
+        .eq("email", user.email)
+        .maybeSingle();
+
+      currentUserRegistration = regData;
+    }
+  }
+
+  return {
+    event,
+    isNew: isEventNew(event.event_date, event.event_time),
+    registrationCount,
+    currentUserRegistration,
+    loggedInUser,
+  };
 }
 
-export const meta: Route.MetaFunction = ({ data }) => {
+export async function action({ request, params }: ActionFunctionArgs) {
+  const supabase = createClient(request);
+  const slug = params.slug!;
+  const event = await getEvent(supabase, slug);
+
+  if (!event || event.type !== "internal" || !event.rsvp_enabled) {
+    return { errors: { general: "Pendaftaran RSVP tidak aktif untuk event ini." } };
+  }
+
+  // Check event date
+  if (!isEventNew(event.event_date, event.event_time)) {
+    return { errors: { general: "Pendaftaran ditutup karena event sudah selesai." } };
+  }
+
+  const formData = await request.formData();
+  const name = (formData.get("name") as string || "").trim();
+  const email = (formData.get("email") as string || "").trim();
+  const whatsappRaw = (formData.get("whatsapp") as string || "").trim();
+  const institution = (formData.get("institution") as string || "").trim();
+  const kabupaten = (formData.get("kabupaten") as string || "").trim();
+  const role = (formData.get("role") as string || "").trim();
+  const reason = (formData.get("reason") as string || "").trim();
+
+  // Validate fields
+  const errors: Record<string, string> = {};
+
+  if (!name || name.length < 3) {
+    errors.name = "Nama lengkap wajib diisi dan minimal 3 karakter.";
+  }
+
+  // Email format check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    errors.email = "Format email tidak valid.";
+  }
+
+  // WhatsApp check
+  const whatsappCleaned = whatsappRaw.replace(/[^\d+]/g, "");
+  if (!whatsappCleaned || !/^(\+62|0)8\d+$/.test(whatsappCleaned) || whatsappCleaned.length < 10 || whatsappCleaned.length > 15) {
+    errors.whatsapp = "Nomor WhatsApp harus berformat Indonesia (mulai dengan 08 atau +62) dan panjang 10-15 digit.";
+  }
+
+  if (!institution) {
+    errors.institution = "Asal Instansi/Sekolah wajib diisi.";
+  }
+
+  const validKabupaten = ["Bangkalan", "Sampang", "Pamekasan", "Sumenep", "Lainnya"];
+  if (!kabupaten || !validKabupaten.includes(kabupaten)) {
+    errors.kabupaten = "Kabupaten tidak valid.";
+  }
+
+  if (reason && reason.length > 500) {
+    errors.reason = "Alasan ikut event maksimal 500 karakter.";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { errors };
+  }
+
+  const adminClient = createAdminClient();
+
+  // Check double registration
+  const { data: existingReg } = await adminClient
+    .from("event_registrations")
+    .select("id")
+    .eq("event_id", event.id)
+    .eq("email", email)
+    .maybeSingle();
+
+  if (existingReg) {
+    return { errors: { email: "Email ini sudah terdaftar untuk event ini." } };
+  }
+
+  // Check seat capacity
+  if (event.max_attendees) {
+    const { count, error: countError } = await adminClient
+      .from("event_registrations")
+      .select("*", { count: "exact", head: true })
+      .eq("event_id", event.id);
+
+    if (!countError && count !== null && count >= event.max_attendees) {
+      return { errors: { general: "Pendaftaran sudah penuh. Kuota maksimal telah terpenuhi." } };
+    }
+  }
+
+  // Insert registration
+  const { error: insertError } = await adminClient
+    .from("event_registrations")
+    .insert({
+      event_id: event.id,
+      name,
+      email,
+      whatsapp: whatsappCleaned,
+      institution,
+      kabupaten,
+      role: role || null,
+      reason: reason || null,
+      status: "confirmed",
+    });
+
+  if (insertError) {
+    console.error("Gagal menyimpan RSVP:", insertError);
+    return { errors: { general: "Terjadi kesalahan pada server. Silakan coba lagi nanti." } };
+  }
+
+  return { success: true };
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.event) return [{ title: "Event tidak ditemukan" }];
   const event = data.event;
   return [
@@ -42,11 +231,50 @@ export const meta: Route.MetaFunction = ({ data }) => {
   ];
 };
 
-export default function DetailEvent({ loaderData }: Route.ComponentProps) {
-  const { event, isNew } = loaderData;
+export default function DetailEvent() {
+  const { event, isNew, registrationCount, currentUserRegistration, loggedInUser } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (actionData?.success) {
+      toast.success("Pendaftaran RSVP berhasil!");
+      formRef.current?.reset();
+    } else if (actionData?.errors?.general) {
+      toast.error(actionData.errors.general);
+    }
+  }, [actionData]);
+
+  const isRsvpActive = event.type === "internal" && event.rsvp_enabled;
+  const isCapacityFull = event.max_attendees ? registrationCount >= event.max_attendees : false;
+  const isPastEvent = !isNew;
+  const isRegistrationClosed = isPastEvent || isCapacityFull;
+
+  const formatRegistrationDate = (dateString?: string) => {
+    if (!dateString) return "";
+    try {
+      const d = new Date(dateString);
+      return d.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }) + " WIB";
+    } catch {
+      return dateString;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px] bg-secondary/5 rounded-full blur-3xl pointer-events-none z-0" />
+
       {/* Dot Grid Background */}
       <div className="fixed inset-0 opacity-5 pointer-events-none z-0">
         <div
@@ -59,173 +287,480 @@ export default function DetailEvent({ loaderData }: Route.ComponentProps) {
         />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-12 md:py-24">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-24"
+      >
         {/* Back Button */}
-        <Link
-          to="/events"
-          className="inline-flex items-center gap-2 mb-8 text-muted-foreground hover:text-primary transition-colors group font-semibold text-sm"
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span>Kembali ke Events</span>
-        </Link>
+        <motion.div variants={itemVariants}>
+          <Link
+            to="/events"
+            className="inline-flex items-center gap-2 mb-8 text-muted-foreground hover:text-primary transition-colors group font-semibold text-sm"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>Kembali ke Events</span>
+          </Link>
+        </motion.div>
 
-        {/* Hero Image Section */}
-        <div className="relative rounded-[2.5rem] overflow-hidden mb-12 border border-border/50 editorial-shadow">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10"></div>
-          {event.image ? (
-            <img
-              src={
-                event.image.startsWith("http")
-                  ? event.image
-                  : `/${event.image}`
-              }
-              alt={event.title}
-              className="w-full h-[400px] md:h-[500px] object-cover"
-            />
-          ) : (
-            <div className="w-full h-[400px] md:h-[500px] bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-              <Calendar className="w-24 h-24 text-primary/30" />
-            </div>
-          )}
-          <div className="absolute top-6 left-6 z-20 flex gap-2">
+        {/* Title & Short Description */}
+        <motion.div variants={itemVariants} className="space-y-6 mb-12">
+          <div className="flex flex-wrap items-center gap-3">
             {isNew ? (
-              <div className="px-4 py-2 bg-primary text-primary-foreground text-xs font-bold tracking-widest uppercase rounded-full shadow-lg">
+              <span className="px-3.5 py-1.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">
                 Upcoming Event
-              </div>
+              </span>
             ) : (
-              <div className="px-4 py-2 bg-muted text-muted-foreground text-xs font-bold tracking-widest uppercase rounded-full shadow-lg">
+              <span className="px-3.5 py-1.5 bg-muted border border-border/50 text-muted-foreground text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">
                 Selesai
-              </div>
+              </span>
             )}
-            <span className="px-4 py-2 text-xs font-bold tracking-widest uppercase rounded-full shadow-lg bg-secondary text-secondary-foreground">
+            <span className="px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm bg-secondary/15 border border-secondary/20 text-secondary-foreground">
               {event.online ? "Online" : "Offline"}
             </span>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="space-y-12">
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-6xl font-black text-foreground font-display leading-[1.1] tracking-tight">
-              {event.title}
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl">
-              {event.description_small}
-            </p>
+            <span className="px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm bg-accent/15 border border-accent/20 text-foreground capitalize">
+              {event.format}
+            </span>
           </div>
 
-          {/* Info Cards Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <div className="group relative overflow-hidden rounded-3xl border border-border/50 bg-card p-6 hover:border-primary/50 transition-colors duration-300 editorial-shadow">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-2xl bg-muted group-hover:bg-primary/10 transition-colors">
-                  <Calendar className="w-6 h-6 text-primary" />
+          <h1 className="text-4xl md:text-7xl font-black text-foreground font-display leading-[1.05] tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent">
+            {event.title}
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-4xl">
+            {event.description_small}
+          </p>
+        </motion.div>
+
+        {/* 2-Column Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start mt-8">
+          
+          {/* Left Column: Image & Description */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* Hero Image Section */}
+            <motion.div
+              variants={itemVariants}
+              className="relative rounded-3xl overflow-hidden border border-border/50 bg-muted/30 aspect-[16/9] editorial-shadow group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10 opacity-70 group-hover:opacity-40 transition-opacity duration-500" />
+              {event.image ? (
+                <img
+                  src={
+                    event.image.startsWith("http")
+                      ? event.image
+                      : `/${event.image}`
+                  }
+                  alt={event.title}
+                  className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/30">
+                  <Calendar className="w-24 h-24 text-primary/30" />
                 </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    Tanggal
-                  </p>
-                  <p className="text-lg font-bold text-foreground">
-                    {event.tanggal}
-                  </p>
+              )}
+            </motion.div>
+
+            {/* Description Section */}
+            <motion.div
+              variants={itemVariants}
+              className="rounded-3xl border border-border/50 bg-card/60 backdrop-blur-md p-8 md:p-12 editorial-shadow"
+            >
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 font-display">
+                Tentang Event
+              </h2>
+              <div
+                className="prose prose-lg dark:prose-invert max-w-none prose-headings:text-foreground prose-headings:font-display prose-p:text-muted-foreground/95 prose-a:text-primary leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: event.description }}
+              />
+            </motion.div>
+          </div>
+
+          {/* Right Column: Sticky Sidebar containing Details & RSVP */}
+          <div className="lg:col-span-4 lg:sticky lg:top-28 space-y-6">
+            
+            {/* Consolidated Event Details Card */}
+            <motion.div
+              variants={itemVariants}
+              className="rounded-3xl border border-border/50 bg-card/65 backdrop-blur-md p-6 editorial-shadow space-y-6"
+            >
+              <h3 className="font-bold text-lg text-foreground border-b border-border/40 pb-3 font-display">
+                Informasi Pelaksanaan
+              </h3>
+              
+              <div className="space-y-5">
+                <div className="flex gap-4 items-start">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/10">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Tanggal</p>
+                    <p className="font-semibold text-foreground">{event.tanggal}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-start">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/10">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Waktu</p>
+                    <p className="font-semibold text-foreground">{event.waktu}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-start">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/10">
+                    {event.online ? (
+                      <Globe className="w-5 h-5" />
+                    ) : (
+                      <MapPin className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Lokasi</p>
+                    <div
+                      className="font-semibold text-foreground text-sm leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: event.location }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-start">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/10">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Format</p>
+                    <p className="font-semibold text-foreground capitalize">{event.format}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="group relative overflow-hidden rounded-3xl border border-border/50 bg-card p-6 hover:border-primary/50 transition-colors duration-300 editorial-shadow">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-2xl bg-muted group-hover:bg-primary/10 transition-colors">
-                  <Clock className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    Waktu
-                  </p>
-                  <p className="text-lg font-bold text-foreground">
-                    {event.waktu}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="group relative overflow-hidden rounded-3xl border border-border/50 bg-card p-6 hover:border-primary/50 transition-colors duration-300 editorial-shadow">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-2xl bg-muted group-hover:bg-primary/10 transition-colors">
-                  <Users className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    Format
-                  </p>
-                  <p className="text-lg font-bold text-foreground capitalize">
-                    {event.format}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="group relative overflow-hidden rounded-3xl border border-border/50 bg-card p-6 hover:border-primary/50 transition-colors duration-300 editorial-shadow">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-2xl bg-muted group-hover:bg-primary/10 transition-colors">
-                  {event.online ? (
-                    <Globe className="w-6 h-6 text-primary" />
+            </motion.div>
+
+            {/* RSVP Section (Internal RSVP) / CTA Section (External Link) */}
+            <motion.div
+              variants={itemVariants}
+              className="rounded-3xl border border-border/50 bg-card/65 backdrop-blur-md p-6 md:p-8 editorial-shadow space-y-6"
+            >
+              {isRsvpActive ? (
+                <div className="space-y-6">
+                  {/* RSVP Header */}
+                  <div className="border-b border-border/40 pb-4 flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground font-display">
+                        Registrasi RSVP
+                      </h3>
+                      <p className="text-muted-foreground text-xs mt-1">
+                        {isPastEvent
+                          ? "Pendaftaran sudah ditutup."
+                          : isCapacityFull
+                          ? "Kuota pendaftaran sudah penuh."
+                          : "Isi form untuk mendaftar."}
+                      </p>
+                    </div>
+                    <div>
+                      {isPastEvent ? (
+                        <span className="inline-flex px-2 py-0.5 bg-muted text-muted-foreground text-[9px] font-bold rounded-full uppercase tracking-wider">
+                          Selesai
+                        </span>
+                      ) : isCapacityFull ? (
+                        <span className="inline-flex px-2 py-0.5 bg-destructive/10 text-destructive text-[9px] font-bold rounded-full uppercase tracking-wider">
+                          Penuh
+                        </span>
+                      ) : (
+                        <span className="inline-flex px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[9px] font-bold rounded-full uppercase tracking-wider">
+                          Buka
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Capacity Status */}
+                  {!isPastEvent && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-2 font-medium">
+                        <span className="text-muted-foreground">Kapasitas</span>
+                        <span className="text-foreground font-bold">
+                          {event.max_attendees
+                            ? `${registrationCount} / ${event.max_attendees} Terisi`
+                            : `${registrationCount} Terdaftar`}
+                        </span>
+                      </div>
+                      {event.max_attendees && (
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-500 rounded-full ${
+                              isCapacityFull ? "bg-destructive" : "bg-primary"
+                            }`}
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                (registrationCount / event.max_attendees) * 100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Already Registered View */}
+                  {currentUserRegistration ? (
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-5 space-y-4">
+                      <div className="flex items-center gap-3 text-emerald-500">
+                        <CheckCircle className="w-8 h-8 flex-shrink-0" />
+                        <div>
+                          <h4 className="text-sm font-bold text-foreground">
+                            Terdaftar!
+                          </h4>
+                          <p className="text-xs text-muted-foreground">
+                            RSVP Anda telah dikonfirmasi.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-emerald-500/10 pt-3 space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Nama</span>
+                          <span className="text-foreground font-medium">{currentUserRegistration.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Email</span>
+                          <span className="text-foreground font-medium">{currentUserRegistration.email}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Kabupaten</span>
+                          <span className="text-foreground font-medium">{currentUserRegistration.kabupaten}</span>
+                        </div>
+                        <div className="flex justify-between flex-wrap gap-2 pt-1 border-t border-emerald-500/5 text-[10px] text-muted-foreground">
+                          <span>Terdaftar: {formatRegistrationDate(currentUserRegistration.registered_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isRegistrationClosed ? (
+                    <div className="bg-muted/30 border rounded-2xl p-6 text-center flex flex-col items-center justify-center space-y-2">
+                      <AlertCircle className="w-10 h-10 text-muted-foreground" />
+                      <h4 className="text-sm font-bold text-foreground">
+                        Pendaftaran Ditutup
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        {isPastEvent
+                          ? "Event ini sudah selesai."
+                          : "Maaf, kuota pendaftaran sudah penuh."}
+                      </p>
+                    </div>
                   ) : (
-                    <MapPin className="w-6 h-6 text-primary" />
+                    /* Registration Form */
+                    <Form ref={formRef} method="post" className="space-y-4">
+                      {actionData?.errors?.general && (
+                        <div className="p-3.5 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl flex items-start gap-2.5 text-xs">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                          <span>{actionData.errors.general}</span>
+                        </div>
+                      )}
+
+                      {/* Name */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="name" className="text-xs">Nama Lengkap *</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          required
+                          disabled={isSubmitting}
+                          defaultValue={loggedInUser?.name || ""}
+                          placeholder="Budi Santoso"
+                          className={actionData?.errors?.name ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                        />
+                        {actionData?.errors?.name && (
+                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {actionData.errors.name}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Email */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="email" className="text-xs">Email *</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          required
+                          disabled={isSubmitting}
+                          defaultValue={loggedInUser?.email || ""}
+                          placeholder="budi@gmail.com"
+                          className={actionData?.errors?.email ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                        />
+                        {actionData?.errors?.email && (
+                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {actionData.errors.email}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* WhatsApp */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="whatsapp" className="text-xs">Nomor WhatsApp *</Label>
+                        <Input
+                          id="whatsapp"
+                          name="whatsapp"
+                          type="tel"
+                          required
+                          disabled={isSubmitting}
+                          placeholder="08123456789"
+                          className={actionData?.errors?.whatsapp ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                        />
+                        {actionData?.errors?.whatsapp && (
+                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {actionData.errors.whatsapp}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Institution */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="institution" className="text-xs">Instansi / Sekolah *</Label>
+                        <Input
+                          id="institution"
+                          name="institution"
+                          required
+                          disabled={isSubmitting}
+                          placeholder="Universitas Trunojoyo Madura"
+                          className={actionData?.errors?.institution ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                        />
+                        {actionData?.errors?.institution && (
+                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {actionData.errors.institution}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Kabupaten */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="kabupaten" className="text-xs">Kabupaten *</Label>
+                        <Select
+                          id="kabupaten"
+                          name="kabupaten"
+                          required
+                          disabled={isSubmitting}
+                          defaultValue=""
+                          className={actionData?.errors?.kabupaten ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                        >
+                          <SelectItem value="">-- Pilih Kabupaten --</SelectItem>
+                          <SelectItem value="Bangkalan">Bangkalan</SelectItem>
+                          <SelectItem value="Sampang">Sampang</SelectItem>
+                          <SelectItem value="Pamekasan">Pamekasan</SelectItem>
+                          <SelectItem value="Sumenep">Sumenep</SelectItem>
+                          <SelectItem value="Lainnya">Lainnya</SelectItem>
+                        </Select>
+                        {actionData?.errors?.kabupaten && (
+                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {actionData.errors.kabupaten}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Role */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="role" className="text-xs">Pekerjaan / Role (Opsional)</Label>
+                        <Input
+                          id="role"
+                          name="role"
+                          disabled={isSubmitting}
+                          placeholder="Mahasiswa, Software Engineer"
+                          className={actionData?.errors?.role ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                        />
+                        {actionData?.errors?.role && (
+                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {actionData.errors.role}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Reason */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="reason" className="text-xs">Alasan Ikut (Opsional)</Label>
+                        <Textarea
+                          id="reason"
+                          name="reason"
+                          disabled={isSubmitting}
+                          placeholder="Tuliskan motivasi Anda..."
+                          rows={2}
+                          className={actionData?.errors?.reason ? "border-destructive focus-visible:ring-destructive text-xs" : "text-xs"}
+                        />
+                        {actionData?.errors?.reason && (
+                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {actionData.errors.reason}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Submit Button */}
+                      <div className="pt-2">
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="bg-primary text-primary-foreground hover:bg-primary/95 w-full py-5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95 duration-150 text-sm"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Mengirim Pendaftaran...
+                            </>
+                          ) : (
+                            "Kirim Registrasi RSVP"
+                          )}
+                        </Button>
+                      </div>
+                    </Form>
                   )}
                 </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    Lokasi
-                  </p>
-                  <div
-                    className="text-lg font-bold text-foreground"
-                    dangerouslySetInnerHTML={{ __html: event.location }}
-                  />
-                </div>
-              </div>
-            </div>
+              ) : (
+                /* External CTA Section */
+                isNew && event.url && event.url !== "#" ? (
+                  <div className="space-y-4 text-center py-2">
+                    <h4 className="font-bold text-lg text-foreground font-display">
+                      Siap bergabung?
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Tempat terbatas, segera amankan kursi Anda melalui platform pendaftaran eksternal.
+                    </p>
+                    <div className="pt-2">
+                      <a
+                        href={event.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        <Button
+                          className="bg-primary text-primary-foreground hover:bg-primary/90 w-full py-5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95 duration-150 text-sm"
+                        >
+                          Daftar Sekarang
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-xs text-muted-foreground py-4">
+                    Event ini tidak memerlukan pendaftaran online atau pendaftaran sudah ditutup.
+                  </div>
+                )
+              )}
+            </motion.div>
+
           </div>
 
-          {/* Description Section */}
-          <div className="rounded-[2.5rem] border border-border/50 bg-card p-8 md:p-12 editorial-shadow">
-            <h2 className="text-3xl font-bold text-foreground mb-8 font-display">
-              Tentang Event
-            </h2>
-            <div
-              className="prose prose-lg dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: event.description }}
-            />
-          </div>
-
-          {/* CTA Section */}
-          {isNew && event.url && event.url !== "#" && (
-            <div className="relative overflow-hidden rounded-[2.5rem] border border-primary/20 bg-primary/5 p-12 text-center editorial-shadow">
-              <div className="relative space-y-6 max-w-2xl mx-auto">
-                <h3 className="text-3xl md:text-4xl font-black text-foreground font-display tracking-tight">
-                  Siap untuk bergabung?
-                </h3>
-                <p className="text-lg text-muted-foreground">
-                  Jangan lewatkan kesempatan berharga ini! Tempat terbatas,
-                  segera amankan kursi Anda.
-                </p>
-                <div className="pt-4">
-                  <a
-                    href={event.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex"
-                  >
-                    <Button
-                      size="lg"
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-10 py-7 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 w-full sm:w-auto"
-                    >
-                      Daftar Sekarang
-                      <ExternalLink className="w-5 h-5" />
-                    </Button>
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

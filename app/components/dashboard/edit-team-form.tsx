@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import type { CoreTeam } from "@/lib/supabase/types";
+import { DeleteTeamButton } from "@/components/dashboard/delete-team-button";
+
 
 interface EditTeamFormProps {
   member: CoreTeam;
@@ -125,9 +127,12 @@ export function EditTeamForm({ member }: EditTeamFormProps) {
           </CardContent>
         </Card>
 
-        <div className="flex gap-4">
-          <Button type="submit" disabled={loading}>{loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</>) : "Update Anggota"}</Button>
-          <Button type="button" variant="outline" asChild><Link to="/dashboard/team">Batal</Link></Button>
+        <div className="flex gap-4 justify-between items-center">
+          <div className="flex gap-4">
+            <Button type="submit" disabled={loading}>{loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</>) : "Update Anggota"}</Button>
+            <Button type="button" variant="outline" asChild><Link to="/dashboard/team">Batal</Link></Button>
+          </div>
+          <DeleteTeamButton id={member.id} name={member.name} variant="button" onSuccess={() => navigate("/dashboard/team")} />
         </div>
       </form>
     </div>

@@ -1,71 +1,87 @@
-import { useState } from "react";
-import { useRevalidator } from "react-router";
+import { useState, useEffect } from "react";
+import { useFetcher } from "react-router";
 import { Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogCancel,
+  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 interface DeleteTeamButtonProps {
   id: string;
   name: string;
+  variant?: "icon" | "button";
+  onSuccess?: () => void;
 }
 
-export function DeleteTeamButton({ id, name }: DeleteTeamButtonProps) {
-  const [loading, setLoading] = useState(false);
+export function DeleteTeamButton({
+  id,
+  name,
+  variant = "icon",
+  onSuccess,
+}: DeleteTeamButtonProps) {
   const [open, setOpen] = useState(false);
-  const revalidator = useRevalidator();
+  const fetcher = useFetcher();
+  const loading = fetcher.state !== "idle";
 
-  const handleDelete = async () => {
-    setLoading(true);
-    const supabase = createClient();
-    if (!supabase) { setLoading(false); return; }
-
-    const { error } = await supabase.from("core_team").delete().eq("id", id);
-
-    if (error) {
-      toast.error("Gagal menghapus anggota");
-      setLoading(false);
-      return;
-    }
-
-    toast.success("Anggota berhasil dihapus");
-    setOpen(false);
-    revalidator.revalidate();
-    setLoading(false);
+  const handleDelete = () => {
+    fetcher.submit(
+      { id },
+      { method: "post", action: "/auth/delete-team" }
+    );
   };
 
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      const data = fetcher.data as { success: boolean; error?: string };
+      if (data.success) {
+        toast.success("Anggota berhasil dihapus");
+        setOpen(false);
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        toast.error(data.error || "Gagal menghapus anggota");
+      }
+    }
+  }, [fetcher.state, fetcher.data, onSuccess]);
+
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon">
+    <>
+      {variant === "button" ? (
+        <Button variant="destructive" type="button" onClick={() => setOpen(true)} disabled={loading}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Hapus Anggota
+        </Button>
+      ) : (
+        <Button variant="ghost" size="icon" onClick={() => setOpen(true)} disabled={loading}>
           <Trash2 className="h-4 w-4 text-destructive" />
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Hapus Anggota</AlertDialogTitle>
-          <AlertDialogDescription>
-            Apakah kamu yakin ingin menghapus "{name}" dari core team? Aksi ini tidak dapat dibatalkan.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} disabled={loading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menghapus...</>) : (<><Trash2 className="mr-2 h-4 w-4" />Hapus</>)}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      )}
+
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Anggota</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah kamu yakin ingin menghapus "{name}" dari core team? Aksi ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setOpen(false)} disabled={loading}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={loading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menghapus...</>) : (<><Trash2 className="mr-2 h-4 w-4" />Hapus</>)}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -15,12 +15,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MADURA_REGIONS, type MaduraRegion } from "@/lib/community";
 import { ImageUpload } from "@/components/dashboard/image-upload";
 import type { Community } from "@/lib/supabase/types";
+import { DeleteCommunityButton } from "@/components/dashboard/delete-community-button";
 import "leaflet/dist/leaflet.css";
+
 
 const MADURA_CENTER: [number, number] = [-7.05, 113.4];
 
@@ -363,20 +365,23 @@ export default function EditCommunityPage() {
           </CardContent>
         </Card>
 
-        <div className="flex gap-4">
-          <Button type="submit" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menyimpan...
-              </>
-            ) : (
-              "Update Komunitas"
-            )}
-          </Button>
-          <Button type="button" variant="outline" asChild>
-            <Link to="/dashboard/communities">Batal</Link>
-          </Button>
+        <div className="flex gap-4 justify-between items-center">
+          <div className="flex gap-4">
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                "Update Komunitas"
+              )}
+            </Button>
+            <Button type="button" variant="outline" asChild>
+              <Link to="/dashboard/communities">Batal</Link>
+            </Button>
+          </div>
+          <DeleteCommunityButton id={community.id} name={community.name} variant="button" onSuccess={() => navigate("/dashboard/communities")} />
         </div>
       </form>
     </div>

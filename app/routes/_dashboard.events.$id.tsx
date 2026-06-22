@@ -26,7 +26,8 @@ import {
   ChevronRight,
   RefreshCw,
   MapPin,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ScanLine
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -241,6 +242,12 @@ export default function EventRsvpDetailsPage() {
 
         {/* Global actions */}
         <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" asChild className="h-9">
+            <Link to={`/dashboard/events/${event.id}/checkin`}>
+              <ScanLine className="mr-2 h-4 w-4 text-primary" />
+              Buka Scanner Check-in
+            </Link>
+          </Button>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing} className="h-9">
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
@@ -308,6 +315,22 @@ export default function EventRsvpDetailsPage() {
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               {isCapSet ? `${remainingSeats} kursi tersisa` : "Pendaftaran terus dibuka"}
+            </p>
+          </div>
+        </div>
+
+        {/* Check-in Stats */}
+        <div className="rounded-2xl border bg-card p-5 space-y-2 shadow-sm">
+          <div className="flex justify-between items-center text-muted-foreground">
+            <span className="text-xs uppercase font-bold tracking-wider">Sudah Hadir</span>
+            <ScanLine className="h-5 w-5 text-primary/80" />
+          </div>
+          <div>
+            <p className="text-3xl font-black text-foreground">
+              {registrations.filter((r: any) => r.checked_in_at).length}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              dari {totalRegistrants} peserta terdaftar
             </p>
           </div>
         </div>
@@ -419,7 +442,7 @@ export default function EventRsvpDetailsPage() {
                     <TableHead>Role</TableHead>
                     <TableHead>Alasan</TableHead>
                     <TableHead>Terdaftar Pada</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-center">Kehadiran</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -509,11 +532,22 @@ export default function EventRsvpDetailsPage() {
                           </p>
                         </TableCell>
 
-                        {/* Status */}
+                        {/* Check-in Status */}
                         <TableCell className="text-center">
-                          <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">
-                            {reg.status || "confirmed"}
-                          </Badge>
+                          {reg.checked_in_at ? (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold">
+                                ✅ Hadir
+                              </Badge>
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(reg.checked_in_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
+                              </span>
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground">
+                              Belum Hadir
+                            </Badge>
+                          )}
                         </TableCell>
 
                       </TableRow>

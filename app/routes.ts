@@ -11,12 +11,16 @@ export default [
     route("community", "routes/_site.community.tsx"),
   ]),
 
+  // Public ticket page (no auth required)
+  route("ticket/:token", "routes/ticket.$token.tsx"),
+
   // Dashboard layout - creates /dashboard/* URL segment
   route("dashboard", "routes/_dashboard.tsx", [
     index("routes/_dashboard._index.tsx"),
     route("events", "routes/_dashboard.events.tsx"),
     route("events/create", "routes/_dashboard.events.create.tsx"),
     route("events/:id/edit", "routes/_dashboard.events.$id.edit.tsx"),
+    route("events/:id/checkin", "routes/_dashboard.events.$id.checkin.tsx"),
     route("events/:id", "routes/_dashboard.events.$id.tsx"),
     route("team", "routes/_dashboard.team.tsx"),
     route("team/create", "routes/_dashboard.team.create.tsx"),

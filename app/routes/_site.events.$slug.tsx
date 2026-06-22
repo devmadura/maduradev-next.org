@@ -190,8 +190,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
   }
 
-  // Insert registration
-  const { error: insertError } = await adminClient
+  // Insert registration and get back the checkin token
+  const { data: newReg, error: insertError } = await adminClient
     .from("event_registrations")
     .insert({
       event_id: event.id,
@@ -203,14 +203,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
       role: role || null,
       reason: reason || null,
       status: "confirmed",
-    });
+    })
+    .select("id, checkin_token")
+    .single();
 
-  if (insertError) {
+  if (insertError || !newReg) {
     console.error("Gagal menyimpan RSVP:", insertError);
     return { errors: { general: "Terjadi kesalahan pada server. Silakan coba lagi nanti." } };
   }
 
-  return { success: true };
+  return { success: true, checkinToken: newReg.checkin_token as string };
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -241,7 +243,7 @@ export default function DetailEvent() {
 
   useEffect(() => {
     if (actionData?.success) {
-      toast.success("Pendaftaran RSVP berhasil!");
+      toast.success("Pendaftaran RSVP berhasil! Cek tiket kamu di bawah.");
       formRef.current?.reset();
     } else if (actionData?.errors?.general) {
       toast.error(actionData.errors.general);
@@ -537,6 +539,32 @@ export default function DetailEvent() {
                           <span>Terdaftar: {formatRegistrationDate(currentUserRegistration.registered_at)}</span>
                         </div>
                       </div>
+                      {/* Ticket link */}
+                      {(currentUserRegistration as any).checkin_token && (
+                        <Link
+                          to={`/ticket/${(currentUserRegistration as any).checkin_token}`}
+                          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors"
+                        >
+                          🎟️ Lihat Tiket & QR Code Saya
+                        </Link>
+                      )}
+                    </div>
+                  ) : actionData?.success && actionData.checkinToken ? (
+                    /* Just registered — show ticket link */
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6 text-center space-y-4">
+                      <div className="flex flex-col items-center gap-2 text-emerald-500">
+                        <CheckCircle className="w-10 h-10" />
+                        <h4 className="text-base font-bold text-foreground">Pendaftaran Berhasil!</h4>
+                        <p className="text-xs text-muted-foreground max-w-xs">
+                          Simpan link tiket kamu. Tunjukkan QR Code saat check-in di lokasi event.
+                        </p>
+                      </div>
+                      <Link
+                        to={`/ticket/${actionData.checkinToken}`}
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold transition-colors"
+                      >
+                        🎟️ Lihat Tiket & QR Code Saya
+                      </Link>
                     </div>
                   ) : isRegistrationClosed ? (
                     <div className="bg-muted/30 border rounded-2xl p-6 text-center flex flex-col items-center justify-center space-y-2">

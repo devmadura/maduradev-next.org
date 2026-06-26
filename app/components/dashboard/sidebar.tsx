@@ -8,6 +8,7 @@ import {
   UserCircle,
   ChevronLeft,
   MapPin,
+  Globe,
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,6 +32,7 @@ const adminMenuItems = [
   { title: "Events", url: "/dashboard/events", icon: Calendar },
   { title: "Core Team", url: "/dashboard/team", icon: Users },
   { title: "Communities", url: "/dashboard/communities", icon: MapPin },
+  { title: "Domains", url: "/dashboard/custom-domains", icon: Globe },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
 

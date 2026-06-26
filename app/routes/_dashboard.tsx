@@ -12,6 +12,7 @@ const adminOnlyPaths = [
   "/dashboard/events",
   "/dashboard/team",
   "/dashboard/settings",
+  "/dashboard/custom-domains",
 ];
 
 export const meta: Route.MetaFunction = () => [

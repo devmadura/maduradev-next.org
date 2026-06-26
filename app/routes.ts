@@ -31,6 +31,7 @@ export default [
     route("communities", "routes/_dashboard.communities.tsx"),
     route("communities/create", "routes/_dashboard.communities.create.tsx"),
     route("communities/:id/edit", "routes/_dashboard.communities.$id.edit.tsx"),
+    route("custom-domains", "routes/_dashboard.custom-domains.tsx"),
   ]),
 
   // Login

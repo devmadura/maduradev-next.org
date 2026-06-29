@@ -57,6 +57,7 @@ export interface EventDisplay {
   type: "internal" | "partner" | null;
   event_date: string;
   event_time: string;
+  price: number | null;
 }
 
 /**
@@ -186,7 +187,7 @@ export function isEventNew(eventDate: string, eventTime?: string): boolean {
 /**
  * Map a database Event row to the EventDisplay format used by components.
  */
-function mapEventToDisplay(event: Event): EventDisplay {
+export function mapEventToDisplay(event: Event): EventDisplay {
   let parsedDescription = event.description || "";
   let parsedLocation = event.location || "";
 
@@ -220,6 +221,7 @@ function mapEventToDisplay(event: Event): EventDisplay {
     type: event.type,
     event_date: event.event_date,
     event_time: event.event_time || "",
+    price: event.price,
   };
 }
 

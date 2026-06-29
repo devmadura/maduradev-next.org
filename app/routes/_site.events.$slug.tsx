@@ -67,14 +67,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (event.type === "internal" && event.rsvp_enabled) {
     const adminClient = createAdminClient();
 
-    // Fetch count of registrations
-    const { count, error: countError } = await adminClient
+    // Fetch registrations to count active seats (ignoring expired pending payments)
+    const { data: regList, error: regListError } = await adminClient
       .from("event_registrations")
-      .select("*", { count: "exact", head: true })
+      .select("status, registered_at")
       .eq("event_id", event.id);
 
-    if (!countError && count !== null) {
-      registrationCount = count;
+    if (!regListError && regList) {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      registrationCount = regList.filter((reg) => 
+        reg.status === "confirmed" || 
+        (reg.status === "pending_payment" && reg.registered_at > fiveMinutesAgo)
+      ).length;
     }
 
     // Fetch logged in user and check if already registered
@@ -92,7 +96,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         .eq("email", user.email)
         .maybeSingle();
 
-      currentUserRegistration = regData;
+      if (regData) {
+        let paymentUrl = null;
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const isExpired = regData.status === "pending_payment" && regData.registered_at <= fiveMinutesAgo;
+
+        if (regData.status === "pending_payment" && !isExpired && event.price) {
+          const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "";
+          const baseUrl = process.env.VITE_URL_APP || "localhost:5173";
+          const protocol = baseUrl.startsWith("localhost") ? "http://" : "https://";
+          const redirectUrl = `${protocol}${baseUrl}/ticket/${regData.checkin_token}`;
+          paymentUrl = `https://app.pakasir.com/pay/${projectSlug}/${event.price}?order_id=${regData.id}&redirect=${encodeURIComponent(redirectUrl)}`;
+        }
+
+        currentUserRegistration = {
+          ...regData,
+          isExpired,
+          paymentUrl,
+        };
+      }
     }
   }
 
@@ -169,26 +191,46 @@ export async function action({ request, params }: ActionFunctionArgs) {
   // Check double registration
   const { data: existingReg } = await adminClient
     .from("event_registrations")
-    .select("id")
+    .select("id, status, registered_at")
     .eq("event_id", event.id)
     .eq("email", email)
     .maybeSingle();
 
   if (existingReg) {
-    return { errors: { email: "Email ini sudah terdaftar untuk event ini." } };
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const isExpired = existingReg.status === "pending_payment" && existingReg.registered_at <= fiveMinutesAgo;
+
+    if (isExpired) {
+      await adminClient
+        .from("event_registrations")
+        .delete()
+        .eq("id", existingReg.id);
+    } else {
+      return { errors: { email: "Email ini sudah terdaftar untuk event ini." } };
+    }
   }
 
   // Check seat capacity
   if (event.max_attendees) {
-    const { count, error: countError } = await adminClient
+    const { data: regList, error: countError } = await adminClient
       .from("event_registrations")
-      .select("*", { count: "exact", head: true })
+      .select("status, registered_at")
       .eq("event_id", event.id);
 
-    if (!countError && count !== null && count >= event.max_attendees) {
-      return { errors: { general: "Pendaftaran sudah penuh. Kuota maksimal telah terpenuhi." } };
+    if (!countError && regList) {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const activeCount = regList.filter((reg) => 
+        reg.status === "confirmed" || 
+        (reg.status === "pending_payment" && reg.registered_at > fiveMinutesAgo)
+      ).length;
+
+      if (activeCount >= event.max_attendees) {
+        return { errors: { general: "Pendaftaran sudah penuh. Kuota maksimal telah terpenuhi." } };
+      }
     }
   }
+
+  const initialStatus = event.price && event.price > 0 ? "pending_payment" : "confirmed";
 
   // Insert registration and get back the checkin token
   const { data: newReg, error: insertError } = await adminClient
@@ -202,7 +244,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       kabupaten,
       role: role || null,
       reason: reason || null,
-      status: "confirmed",
+      status: initialStatus,
     })
     .select("id, checkin_token")
     .single();
@@ -212,7 +254,20 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return { errors: { general: "Terjadi kesalahan pada server. Silakan coba lagi nanti." } };
   }
 
-  return { success: true, checkinToken: newReg.checkin_token as string };
+  let paymentUrl = null;
+  if (initialStatus === "pending_payment" && event.price) {
+    const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "";
+    const baseUrl = process.env.VITE_URL_APP || "localhost:5173";
+    const protocol = baseUrl.startsWith("localhost") ? "http://" : "https://";
+    const redirectUrl = `${protocol}${baseUrl}/ticket/${newReg.checkin_token}`;
+    paymentUrl = `https://app.pakasir.com/pay/${projectSlug}/${event.price}?order_id=${newReg.id}&redirect=${encodeURIComponent(redirectUrl)}`;
+  }
+
+  return { 
+    success: true, 
+    checkinToken: newReg.checkin_token as string, 
+    paymentUrl 
+  };
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -509,63 +564,151 @@ export default function DetailEvent() {
 
                   {/* Already Registered View */}
                   {currentUserRegistration ? (
-                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-5 space-y-4">
-                      <div className="flex items-center gap-3 text-emerald-500">
-                        <CheckCircle className="w-8 h-8 flex-shrink-0" />
-                        <div>
-                          <h4 className="text-sm font-bold text-foreground">
-                            Terdaftar!
-                          </h4>
-                          <p className="text-xs text-muted-foreground">
-                            RSVP Anda telah dikonfirmasi.
+                    currentUserRegistration.status === "pending_payment" ? (
+                      currentUserRegistration.isExpired ? (
+                        <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-5 space-y-4">
+                          <div className="flex items-center gap-3 text-destructive">
+                            <AlertCircle className="w-8 h-8 flex-shrink-0" />
+                            <div>
+                              <h4 className="text-sm font-bold text-foreground">
+                                Pembayaran Kadaluwarsa
+                              </h4>
+                              <p className="text-xs text-muted-foreground">
+                                Waktu pembayaran 5 menit telah habis. Silakan refresh halaman untuk mendaftar kembali.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-5 space-y-4">
+                          <div className="flex items-center gap-3 text-amber-500">
+                            <AlertCircle className="w-8 h-8 flex-shrink-0 animate-pulse" />
+                            <div>
+                              <h4 className="text-sm font-bold text-foreground">
+                                Menunggu Pembayaran
+                              </h4>
+                              <p className="text-xs text-muted-foreground">
+                                Selesaikan pembayaran Anda sebelum batas waktu 5 menit berakhir.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="border-t border-amber-500/10 pt-3 space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Nama</span>
+                              <span className="text-foreground font-medium">{currentUserRegistration.name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Email</span>
+                              <span className="text-foreground font-medium">{currentUserRegistration.email}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Harga Tiket</span>
+                              <span className="text-foreground font-medium">Rp {event.price?.toLocaleString("id-ID")}</span>
+                            </div>
+                          </div>
+
+                          {currentUserRegistration.paymentUrl && (
+                            <a
+                              href={currentUserRegistration.paymentUrl}
+                              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-colors text-center"
+                            >
+                              💳 Bayar Sekarang via Pakasir
+                            </a>
+                          )}
+                          {(currentUserRegistration as any).checkin_token && (
+                            <Link
+                              to={`/ticket/${(currentUserRegistration as any).checkin_token}`}
+                              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-medium transition-colors"
+                            >
+                              🎟️ Detail Tiket Saya
+                            </Link>
+                          )}
+                        </div>
+                      )
+                    ) : (
+                      <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-5 space-y-4">
+                        <div className="flex items-center gap-3 text-emerald-500">
+                          <CheckCircle className="w-8 h-8 flex-shrink-0" />
+                          <div>
+                            <h4 className="text-sm font-bold text-foreground">
+                              Terdaftar!
+                            </h4>
+                            <p className="text-xs text-muted-foreground">
+                              RSVP Anda telah dikonfirmasi.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-emerald-500/10 pt-3 space-y-2 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Nama</span>
+                            <span className="text-foreground font-medium">{currentUserRegistration.name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Email</span>
+                            <span className="text-foreground font-medium">{currentUserRegistration.email}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Kabupaten</span>
+                            <span className="text-foreground font-medium">{currentUserRegistration.kabupaten}</span>
+                          </div>
+                          <div className="flex justify-between flex-wrap gap-2 pt-1 border-t border-emerald-500/5 text-[10px] text-muted-foreground">
+                            <span>Terdaftar: {formatRegistrationDate(currentUserRegistration.registered_at)}</span>
+                          </div>
+                        </div>
+                        {/* Ticket link */}
+                        {(currentUserRegistration as any).checkin_token && (
+                          <Link
+                            to={`/ticket/${(currentUserRegistration as any).checkin_token}`}
+                            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors"
+                          >
+                            🎟️ Lihat Tiket & QR Code Saya
+                          </Link>
+                        )}
+                      </div>
+                    )
+                  ) : actionData?.success && actionData.checkinToken ? (
+                    actionData.paymentUrl ? (
+                      <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6 text-center space-y-4">
+                        <div className="flex flex-col items-center gap-2 text-amber-500">
+                          <AlertCircle className="w-10 h-10 animate-pulse" />
+                          <h4 className="text-base font-bold text-foreground">Pendaftaran Disimpan</h4>
+                          <p className="text-xs text-muted-foreground max-w-xs">
+                            Selesaikan pembayaran dalam **5 menit** untuk mengaktifkan tiket Anda.
                           </p>
                         </div>
-                      </div>
-
-                      <div className="border-t border-emerald-500/10 pt-3 space-y-2 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Nama</span>
-                          <span className="text-foreground font-medium">{currentUserRegistration.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Email</span>
-                          <span className="text-foreground font-medium">{currentUserRegistration.email}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Kabupaten</span>
-                          <span className="text-foreground font-medium">{currentUserRegistration.kabupaten}</span>
-                        </div>
-                        <div className="flex justify-between flex-wrap gap-2 pt-1 border-t border-emerald-500/5 text-[10px] text-muted-foreground">
-                          <span>Terdaftar: {formatRegistrationDate(currentUserRegistration.registered_at)}</span>
-                        </div>
-                      </div>
-                      {/* Ticket link */}
-                      {(currentUserRegistration as any).checkin_token && (
+                        <a
+                          href={actionData.paymentUrl}
+                          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold transition-colors shadow-lg shadow-amber-500/25 block text-center"
+                        >
+                          💳 Bayar Sekarang via Pakasir
+                        </a>
                         <Link
-                          to={`/ticket/${(currentUserRegistration as any).checkin_token}`}
-                          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors"
+                          to={`/ticket/${actionData.checkinToken}`}
+                          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-medium transition-colors"
+                        >
+                          🎟️ Lihat Detail Tiket
+                        </Link>
+                      </div>
+                    ) : (
+                      /* Just registered — show ticket link */
+                      <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6 text-center space-y-4">
+                        <div className="flex flex-col items-center gap-2 text-emerald-500">
+                          <CheckCircle className="w-10 h-10" />
+                          <h4 className="text-base font-bold text-foreground">Pendaftaran Berhasil!</h4>
+                          <p className="text-xs text-muted-foreground max-w-xs">
+                            Simpan link tiket kamu. Tunjukkan QR Code saat check-in di lokasi event.
+                          </p>
+                        </div>
+                        <Link
+                          to={`/ticket/${actionData.checkinToken}`}
+                          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold transition-colors"
                         >
                           🎟️ Lihat Tiket & QR Code Saya
                         </Link>
-                      )}
-                    </div>
-                  ) : actionData?.success && actionData.checkinToken ? (
-                    /* Just registered — show ticket link */
-                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6 text-center space-y-4">
-                      <div className="flex flex-col items-center gap-2 text-emerald-500">
-                        <CheckCircle className="w-10 h-10" />
-                        <h4 className="text-base font-bold text-foreground">Pendaftaran Berhasil!</h4>
-                        <p className="text-xs text-muted-foreground max-w-xs">
-                          Simpan link tiket kamu. Tunjukkan QR Code saat check-in di lokasi event.
-                        </p>
                       </div>
-                      <Link
-                        to={`/ticket/${actionData.checkinToken}`}
-                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold transition-colors"
-                      >
-                        🎟️ Lihat Tiket & QR Code Saya
-                      </Link>
-                    </div>
+                    )
                   ) : isRegistrationClosed ? (
                     <div className="bg-muted/30 border rounded-2xl p-6 text-center flex flex-col items-center justify-center space-y-2">
                       <AlertCircle className="w-10 h-10 text-muted-foreground" />

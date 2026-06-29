@@ -2,7 +2,7 @@ import type { Route } from "./+types/ticket.$token";
 import { Link } from "react-router";
 import { useLoaderData } from "react-router";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { formatEventDate, formatEventTime } from "@/lib/event";
+import { formatEventDate, formatEventTime, mapEventToDisplay } from "@/lib/event";
 import {
   Calendar,
   Clock,
@@ -13,6 +13,7 @@ import {
   Building2,
   ArrowLeft,
   Globe,
+  AlertCircle,
 } from "lucide-react";
 
 export const meta: Route.MetaFunction = ({ data }) => [
@@ -45,14 +46,57 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 
   // Fetch event detail
-  const { data: event, error: eventError } = await adminClient
+  const { data: eventData, error: eventError } = await adminClient
     .from("events")
     .select("*")
     .eq("id", registration.event_id)
     .single();
 
-  if (eventError || !event) {
+  if (eventError || !eventData) {
     throw new Response("Event tidak ditemukan.", { status: 404 });
+  }
+
+  const event = mapEventToDisplay(eventData);
+
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  let isExpired = registration.status === "pending_payment" && registration.registered_at <= fiveMinutesAgo;
+
+  // Real-time fallback check: if status is pending and not expired, query Pakasir API directly
+  if (registration.status === "pending_payment" && !isExpired && event.price) {
+    const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "";
+    const apiKey = process.env.PAKASIR_API_KEY || "";
+    
+    if (projectSlug && apiKey) {
+      try {
+        const verifyUrl = `https://app.pakasir.com/api/transactiondetail?project=${projectSlug}&amount=${event.price}&order_id=${registration.id}&api_key=${apiKey}`;
+        const verifyRes = await fetch(verifyUrl);
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json();
+          const transaction = verifyData.transaction;
+          if (transaction && transaction.status === "completed") {
+            // Update to confirmed in database
+            await adminClient
+              .from("event_registrations")
+              .update({ status: "confirmed" })
+              .eq("id", registration.id);
+              
+            registration.status = "confirmed";
+            isExpired = false;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to query Pakasir API during fallback check:", err);
+      }
+    }
+  }
+
+  let paymentUrl = null;
+  if (registration.status === "pending_payment" && !isExpired && event.price) {
+    const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "";
+    const baseUrl = process.env.VITE_URL_APP || "localhost:5173";
+    const protocol = baseUrl.startsWith("localhost") ? "http://" : "https://";
+    const redirectUrl = `${protocol}${baseUrl}/ticket/${registration.checkin_token}`;
+    paymentUrl = `https://app.pakasir.com/pay/${projectSlug}/${event.price}?order_id=${registration.id}&redirect=${encodeURIComponent(redirectUrl)}`;
   }
 
   return {
@@ -61,11 +105,13 @@ export async function loader({ params }: Route.LoaderArgs) {
     token,
     isCheckedIn: !!registration.checked_in_at,
     checkedInAt: registration.checked_in_at as string | null,
+    isExpired,
+    paymentUrl,
   };
 }
 
 export default function TicketPage() {
-  const { registration, event, token, isCheckedIn, checkedInAt } =
+  const { registration, event, token, isCheckedIn, checkedInAt, isExpired, paymentUrl } =
     useLoaderData<typeof loader>();
 
   const qrValue = token;
@@ -83,14 +129,14 @@ export default function TicketPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden print:bg-white print:p-0 print:min-h-0">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-emerald-500/5 pointer-events-none" />
-      <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-primary/8 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-emerald-500/5 pointer-events-none print:hidden" />
+      <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-primary/8 rounded-full blur-3xl pointer-events-none print:hidden" />
+      <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-emerald-500/8 rounded-full blur-3xl pointer-events-none print:hidden" />
 
       {/* Back link */}
-      <div className="relative z-10 w-full max-w-sm mb-4">
+      <div className="relative z-10 w-full max-w-sm mb-4 print:hidden">
         <Link
           to={`/events/${event.slug}`}
           className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
@@ -101,9 +147,21 @@ export default function TicketPage() {
       </div>
 
       {/* Ticket Card */}
-      <div className="relative z-10 w-full max-w-sm">
+      <div className="relative z-10 w-full max-w-sm print:max-w-none print:w-[350px] print:mx-auto">
         {/* Status banner */}
-        {isCheckedIn ? (
+        {registration.status === "pending_payment" ? (
+          isExpired ? (
+            <div className="flex items-center justify-center gap-2 bg-destructive text-destructive-foreground text-xs font-bold px-4 py-2.5 rounded-t-2xl animate-pulse">
+              <AlertCircle className="w-4 h-4" />
+              TIKET KADALUWARSA · Waktu Habis
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2 bg-amber-500 text-white text-xs font-bold px-4 py-2.5 rounded-t-2xl animate-pulse">
+              <Clock className="w-4 h-4" />
+              MENUNGGU PEMBAYARAN · Selesaikan Pembayaran
+            </div>
+          )
+        ) : isCheckedIn ? (
           <div className="flex items-center justify-center gap-2 bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-t-2xl">
             <CheckCircle2 className="w-4 h-4" />
             SUDAH HADIR · {formattedCheckinTime}
@@ -138,37 +196,65 @@ export default function TicketPage() {
                 </div>
               )}
               {event.location && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   {event.is_online ? (
-                    <Globe className="w-3.5 h-3.5 text-primary/70 flex-shrink-0" />
+                    <Globe className="w-3.5 h-3.5 text-primary/70 flex-shrink-0 mt-0.5" />
                   ) : (
-                    <MapPin className="w-3.5 h-3.5 text-primary/70 flex-shrink-0" />
+                    <MapPin className="w-3.5 h-3.5 text-primary/70 flex-shrink-0 mt-0.5" />
                   )}
-                  <span className="line-clamp-1">{event.location.replace(/<[^>]*>/g, "").substring(0, 60)}</span>
+                  <span 
+                    className="line-clamp-1 text-xs text-muted-foreground prose prose-sm dark:prose-invert prose-a:text-primary hover:prose-a:underline"
+                    dangerouslySetInnerHTML={{ __html: event.location }}
+                  />
                 </div>
               )}
             </div>
           </div>
 
           {/* QR Code */}
-          <div className="flex flex-col items-center px-6 py-6 bg-white dark:bg-muted/20">
+          <div className="flex flex-col items-center px-6 py-6 bg-white dark:bg-muted/20 relative">
             <div
-              className={`p-3 rounded-2xl border-2 shadow-sm ${isCheckedIn
+              className={`p-3 rounded-2xl border-2 shadow-sm relative overflow-hidden ${
+                isCheckedIn
                   ? "border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/20"
+                  : registration.status === "pending_payment"
+                  ? isExpired
+                    ? "border-destructive/20 bg-destructive/5"
+                    : "border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/10"
                   : "border-primary/20 bg-white dark:bg-muted/10"
-                }`}
+              }`}
             >
               <img
                 src={qrImageUrl}
                 alt="QR Code Tiket"
                 width={200}
                 height={200}
-                className="rounded-xl block"
+                className={`rounded-xl block ${
+                  registration.status === "pending_payment" ? "blur-md select-none pointer-events-none opacity-40" : ""
+                }`}
                 loading="eager"
               />
+
+              {registration.status === "pending_payment" && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-background/30 dark:bg-background/40 backdrop-blur-[3px] select-none">
+                  {isExpired ? (
+                    <>
+                      <AlertCircle className="w-8 h-8 text-destructive mb-1" />
+                      <p className="text-[10px] font-bold text-destructive">Waktu Habis</p>
+                      <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">Registrasi ulang diperlukan</p>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-8 h-8 text-amber-500 mb-1 animate-pulse" />
+                      <p className="text-[10px] font-bold text-amber-500">Tiket Belum Aktif</p>
+                      <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">Selesaikan pembayaran</p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             <p className="text-[10px] text-muted-foreground mt-3 text-center font-mono break-all max-w-[200px]">
-              {token}
+              {registration.status === "pending_payment" ? "••••••••••••••••" : token}
             </p>
           </div>
 
@@ -223,28 +309,71 @@ export default function TicketPage() {
                   Status
                 </p>
                 <p
-                  className={`font-bold ${isCheckedIn ? "text-emerald-500" : "text-amber-500"
-                    }`}
+                  className={`font-bold ${
+                    isCheckedIn
+                      ? "text-emerald-500"
+                      : registration.status === "pending_payment"
+                      ? isExpired
+                        ? "text-destructive"
+                        : "text-amber-500"
+                      : "text-primary"
+                  }`}
                 >
-                  {isCheckedIn ? "✅ Hadir" : "⏳ Terdaftar"}
+                  {isCheckedIn
+                    ? "✅ Hadir"
+                    : registration.status === "pending_payment"
+                    ? isExpired
+                      ? "❌ Kadaluwarsa"
+                      : "⏳ Pending"
+                    : "⏳ Terdaftar"}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="px-6 pb-5">
-            <div className="bg-muted/40 rounded-xl px-4 py-3 text-center">
+          <div className="px-6 pb-5 space-y-3">
+            {registration.status === "pending_payment" && !isExpired && paymentUrl && (
+              <a
+                href={paymentUrl}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold transition-colors shadow-lg shadow-amber-500/20 text-center block print:hidden"
+              >
+                💳 Bayar Sekarang via Pakasir
+              </a>
+            )}
+
+            {registration.status === "pending_payment" && isExpired && (
+              <Link
+                to={`/events/${event.slug}`}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-destructive hover:bg-destructive/80 text-white text-sm font-bold transition-colors text-center block print:hidden"
+              >
+                🔄 Daftar Ulang Event
+              </Link>
+            )}
+
+            <div className="bg-muted/40 rounded-xl px-4 py-3 text-center print:hidden">
               <p className="text-[10px] text-muted-foreground font-medium">
-                Tunjukkan QR Code ini kepada panitia saat registrasi di lokasi event.
-                Jangan bagikan ke orang lain.
+                {registration.status === "pending_payment"
+                  ? isExpired
+                    ? "Link pendaftaran ini telah kadaluwarsa karena tidak melunasi pembayaran dalam 5 menit."
+                    : "Harap selesaikan pembayaran. Setelah lunas, tiket dan QR Code akan aktif otomatis."
+                  : "Tunjukkan QR Code ini kepada panitia saat registrasi di lokasi event. Jangan bagikan ke orang lain."}
               </p>
             </div>
+
+            {registration.status === "confirmed" && (
+              <button
+                onClick={() => window.print()}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-border bg-card hover:bg-muted text-foreground text-xs font-bold transition-colors shadow-sm cursor-pointer print:hidden"
+              >
+                📥 Download / Cetak Tiket PDF
+              </button>
+            )}
           </div>
         </div>
 
         {/* Bottom branding */}
-        <div className="text-center mt-4">
+        <div className="text-center mt-4 print:hidden">
           <Link
             to="/"
             className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"

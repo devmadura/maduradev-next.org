@@ -53,6 +53,8 @@ export default function CreateEventPage() {
     type: "internal" as "internal" | "partner",
     rsvp_enabled: false,
     max_attendees: "",
+    price: "",
+    is_paid: false,
   });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,9 +77,11 @@ export default function CreateEventPage() {
       return;
     }
 
+    const { is_paid, ...restFormData } = formData;
     const payload = {
-      ...formData,
+      ...restFormData,
       max_attendees: formData.rsvp_enabled && formData.max_attendees !== "" ? Number(formData.max_attendees) : null,
+      price: formData.rsvp_enabled && formData.is_paid && formData.price !== "" ? Number(formData.price) : 0,
     };
 
     const { error } = await supabase.from("events").insert([payload]);
@@ -164,7 +168,7 @@ export default function CreateEventPage() {
                 </ControlledSelect>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="url">URL Event</Label>
+                <Label htmlFor="url">URL Event (Opsional)</Label>
                 <Input
                   id="url"
                   value={formData.url}
@@ -209,7 +213,7 @@ export default function CreateEventPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Deskripsi Lengkap (Markdown)</Label>
+              <Label htmlFor="description">Deskripsi Lengkap (Markdown) (Opsional)</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -266,7 +270,7 @@ export default function CreateEventPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Lokasi (Markdown)</Label>
+              <Label htmlFor="location">Lokasi (Markdown) (Opsional)</Label>
               <Textarea
                 id="location"
                 value={formData.location}
@@ -344,18 +348,50 @@ export default function CreateEventPage() {
                     }
                   />
                 </div>
-                {formData.rsvp_enabled && (
-                  <div className="space-y-2">
-                    <Label htmlFor="max_attendees">Batas Maksimal Peserta</Label>
-                    <Input
-                      id="max_attendees"
-                      type="number"
-                      value={formData.max_attendees}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, max_attendees: e.target.value }))
-                      }
-                      placeholder="Kosongkan jika tidak terbatas"
-                    />
+                 {formData.rsvp_enabled && (
+                  <div className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="max_attendees">Batas Maksimal Peserta (Opsional)</Label>
+                        <Input
+                          id="max_attendees"
+                          type="number"
+                          value={formData.max_attendees}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, max_attendees: e.target.value }))
+                          }
+                          placeholder="Kosongkan jika tidak terbatas"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="ticket_type">Jenis Tiket</Label>
+                        <ControlledSelect
+                          value={formData.is_paid ? "paid" : "free"}
+                          onValueChange={(value: string) =>
+                            setFormData((prev) => ({ ...prev, is_paid: value === "paid" }))
+                          }
+                        >
+                          <SelectItem value="free">Gratis</SelectItem>
+                          <SelectItem value="paid">Berbayar</SelectItem>
+                        </ControlledSelect>
+                      </div>
+                    </div>
+                    {formData.is_paid && (
+                      <div className="space-y-2">
+                        <Label htmlFor="price">Harga Tiket (Rupiah) *</Label>
+                        <Input
+                          id="price"
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, price: e.target.value }))
+                          }
+                          placeholder="Masukkan nominal harga (misal: 50000)"
+                          required
+                          min="1"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </>

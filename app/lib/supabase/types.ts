@@ -27,6 +27,7 @@ export interface Event {
   rsvp_enabled: boolean;
   max_attendees: number | null;
   type: "internal" | "partner" | null;
+  price: number | null;
   created_at?: string;
   updated_at?: string;
 }

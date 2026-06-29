@@ -60,6 +60,8 @@ export function EditEventForm({ event }: EditEventFormProps) {
     type: (event.type || "internal") as "internal" | "partner",
     rsvp_enabled: event.rsvp_enabled || false,
     max_attendees: event.max_attendees !== null && event.max_attendees !== undefined ? String(event.max_attendees) : "",
+    price: event.price !== null && event.price !== undefined ? String(event.price) : "",
+    is_paid: (event.price && event.price > 0) || false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,9 +71,11 @@ export function EditEventForm({ event }: EditEventFormProps) {
     const supabase = createClient();
     if (!supabase) { setLoading(false); return; }
 
+    const { is_paid, ...restFormData } = formData;
     const payload = {
-      ...formData,
+      ...restFormData,
       max_attendees: formData.rsvp_enabled && formData.max_attendees !== "" ? Number(formData.max_attendees) : null,
+      price: formData.rsvp_enabled && formData.is_paid && formData.price !== "" ? Number(formData.price) : 0,
     };
 
     const { error } = await supabase.from("events").update(payload).eq("id", event.id);
@@ -118,7 +122,7 @@ export function EditEventForm({ event }: EditEventFormProps) {
                   <SelectItem value="hackathon">Hackathon</SelectItem>
                 </ControlledSelect>
               </div>
-              <div className="space-y-2"><Label htmlFor="url">URL Event</Label><Input id="url" value={formData.url} onChange={(e) => setFormData((prev) => ({ ...prev, url: e.target.value }))} placeholder="https://example.com/register" /></div>
+              <div className="space-y-2"><Label htmlFor="url">URL Event (Opsional)</Label><Input id="url" value={formData.url} onChange={(e) => setFormData((prev) => ({ ...prev, url: e.target.value }))} placeholder="https://example.com/register" /></div>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -135,7 +139,7 @@ export function EditEventForm({ event }: EditEventFormProps) {
               </div>
             </div>
             <div className="space-y-2"><Label htmlFor="description_small">Deskripsi Singkat *</Label><Textarea id="description_small" value={formData.description_small} onChange={(e) => setFormData((prev) => ({ ...prev, description_small: e.target.value }))} rows={2} required /></div>
-            <div className="space-y-2"><Label htmlFor="description">Deskripsi Lengkap (Markdown)</Label><Textarea id="description" placeholder="Mendukung format Markdown" value={formData.description} onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))} rows={6} /></div>
+            <div className="space-y-2"><Label htmlFor="description">Deskripsi Lengkap (Markdown) (Opsional)</Label><Textarea id="description" placeholder="Mendukung format Markdown" value={formData.description} onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))} rows={6} /></div>
           </CardContent>
         </Card>
 
@@ -146,7 +150,7 @@ export function EditEventForm({ event }: EditEventFormProps) {
               <div className="space-y-2"><Label htmlFor="event_date">Tanggal *</Label><Input id="event_date" type="date" value={formData.event_date} onChange={(e) => setFormData((prev) => ({ ...prev, event_date: e.target.value }))} required /></div>
               <div className="space-y-2"><Label htmlFor="event_time">Waktu *</Label><Input id="event_time" type="time" value={formData.event_time} onChange={(e) => setFormData((prev) => ({ ...prev, event_time: e.target.value }))} required /></div>
             </div>
-            <div className="space-y-2"><Label htmlFor="location">Lokasi (Markdown)</Label><Textarea id="location" placeholder="Mendukung format Markdown" value={formData.location} onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))} rows={2} /></div>
+            <div className="space-y-2"><Label htmlFor="location">Lokasi (Markdown) (Opsional)</Label><Textarea id="location" placeholder="Mendukung format Markdown" value={formData.location} onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))} rows={2} /></div>
           </CardContent>
         </Card>
 
@@ -172,18 +176,50 @@ export function EditEventForm({ event }: EditEventFormProps) {
                     }
                   />
                 </div>
-                {formData.rsvp_enabled && (
-                  <div className="space-y-2">
-                    <Label htmlFor="max_attendees">Batas Maksimal Peserta</Label>
-                    <Input
-                      id="max_attendees"
-                      type="number"
-                      value={formData.max_attendees}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, max_attendees: e.target.value }))
-                      }
-                      placeholder="Kosongkan jika tidak terbatas"
-                    />
+                 {formData.rsvp_enabled && (
+                  <div className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="max_attendees">Batas Maksimal Peserta (Opsional)</Label>
+                        <Input
+                          id="max_attendees"
+                          type="number"
+                          value={formData.max_attendees}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, max_attendees: e.target.value }))
+                          }
+                          placeholder="Kosongkan jika tidak terbatas"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="ticket_type">Jenis Tiket</Label>
+                        <ControlledSelect
+                          value={formData.is_paid ? "paid" : "free"}
+                          onValueChange={(value: string) =>
+                            setFormData((prev) => ({ ...prev, is_paid: value === "paid" }))
+                          }
+                        >
+                          <SelectItem value="free">Gratis</SelectItem>
+                          <SelectItem value="paid">Berbayar</SelectItem>
+                        </ControlledSelect>
+                      </div>
+                    </div>
+                    {formData.is_paid && (
+                      <div className="space-y-2">
+                        <Label htmlFor="price">Harga Tiket (Rupiah) *</Label>
+                        <Input
+                          id="price"
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, price: e.target.value }))
+                          }
+                          placeholder="Masukkan nominal harga (misal: 50000)"
+                          required
+                          min="1"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </>

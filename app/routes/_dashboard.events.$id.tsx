@@ -178,7 +178,9 @@ export default function EventRsvpDetailsPage() {
       reg.role || "",
       reg.reason || "",
       new Date(reg.registered_at).toLocaleString("id-ID"),
-      reg.status || "confirmed"
+      event.price && event.price > 0 
+        ? (reg.status === "confirmed" ? "Lunas" : "Pending") 
+        : (reg.status || "confirmed")
     ]);
 
     const csvContent = [
@@ -442,6 +444,7 @@ export default function EventRsvpDetailsPage() {
                     <TableHead>Role</TableHead>
                     <TableHead>Alasan</TableHead>
                     <TableHead>Terdaftar Pada</TableHead>
+                    <TableHead className="text-center">Status Bayar</TableHead>
                     <TableHead className="text-center">Kehadiran</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -530,6 +533,23 @@ export default function EventRsvpDetailsPage() {
                               minute: "2-digit"
                             })} WIB
                           </p>
+                        </TableCell>
+
+                        {/* Payment Status */}
+                        <TableCell className="text-center">
+                          {event.price && event.price > 0 ? (
+                            reg.status === "confirmed" ? (
+                              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold">
+                                Lunas
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-bold">
+                                Pending
+                              </Badge>
+                            )
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
                         </TableCell>
 
                         {/* Check-in Status */}

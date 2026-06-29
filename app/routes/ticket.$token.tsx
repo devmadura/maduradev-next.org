@@ -25,7 +25,7 @@ export const meta: Route.MetaFunction = ({ data }) => [
   { name: "robots", content: "noindex" },
 ];
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const token = params.token;
 
   if (!token) {
@@ -93,9 +93,8 @@ export async function loader({ params }: Route.LoaderArgs) {
   let paymentUrl = null;
   if (registration.status === "pending_payment" && !isExpired && event.price) {
     const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "";
-    const baseUrl = process.env.VITE_URL_APP || "localhost:5173";
-    const protocol = baseUrl.startsWith("localhost") ? "http://" : "https://";
-    const redirectUrl = `${protocol}${baseUrl}/ticket/${registration.checkin_token}`;
+    const requestUrl = new URL(request.url);
+    const redirectUrl = `${requestUrl.protocol}//${requestUrl.host}/ticket/${registration.checkin_token}`;
     paymentUrl = `https://app.pakasir.com/pay/${projectSlug}/${event.price}?order_id=${registration.id}&redirect=${encodeURIComponent(redirectUrl)}`;
   }
 
@@ -197,7 +196,7 @@ export default function TicketPage() {
               )}
               {event.location && (
                 <div className="flex items-start gap-2">
-                  {event.is_online ? (
+                  {event.online ? (
                     <Globe className="w-3.5 h-3.5 text-primary/70 flex-shrink-0 mt-0.5" />
                   ) : (
                     <MapPin className="w-3.5 h-3.5 text-primary/70 flex-shrink-0 mt-0.5" />

@@ -103,9 +103,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
         if (regData.status === "pending_payment" && !isExpired && event.price) {
           const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "";
-          const baseUrl = process.env.VITE_URL_APP || "localhost:5173";
-          const protocol = baseUrl.startsWith("localhost") ? "http://" : "https://";
-          const redirectUrl = `${protocol}${baseUrl}/ticket/${regData.checkin_token}`;
+          const requestUrl = new URL(request.url);
+          const redirectUrl = `${requestUrl.protocol}//${requestUrl.host}/ticket/${regData.checkin_token}`;
           paymentUrl = `https://app.pakasir.com/pay/${projectSlug}/${event.price}?order_id=${regData.id}&redirect=${encodeURIComponent(redirectUrl)}`;
         }
 
@@ -257,9 +256,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
   let paymentUrl = null;
   if (initialStatus === "pending_payment" && event.price) {
     const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "";
-    const baseUrl = process.env.VITE_URL_APP || "localhost:5173";
-    const protocol = baseUrl.startsWith("localhost") ? "http://" : "https://";
-    const redirectUrl = `${protocol}${baseUrl}/ticket/${newReg.checkin_token}`;
+    const requestUrl = new URL(request.url);
+    const redirectUrl = `${requestUrl.protocol}//${requestUrl.host}/ticket/${newReg.checkin_token}`;
     paymentUrl = `https://app.pakasir.com/pay/${projectSlug}/${event.price}?order_id=${newReg.id}&redirect=${encodeURIComponent(redirectUrl)}`;
   }
 

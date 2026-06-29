@@ -1,5 +1,5 @@
 // Verification Comment
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -172,9 +172,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     errors.institution = "Asal Instansi/Sekolah wajib diisi.";
   }
 
-  const validKabupaten = ["Bangkalan", "Sampang", "Pamekasan", "Sumenep", "Lainnya"];
-  if (!kabupaten || !validKabupaten.includes(kabupaten)) {
-    errors.kabupaten = "Kabupaten tidak valid.";
+  if (!kabupaten || kabupaten.length < 2) {
+    errors.kabupaten = "Kabupaten wajib diisi.";
   }
 
   if (reason && reason.length > 500) {
@@ -294,16 +293,142 @@ export default function DetailEvent() {
 
   const formRef = useRef<HTMLFormElement>(null);
 
+  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([]);
+  const [selectedProvinceId, setSelectedProvinceId] = useState("");
+  const [selectedProvinceName, setSelectedProvinceName] = useState("");
+  const [regencies, setRegencies] = useState<{ id: string; name: string }[]>([]);
+  const [selectedRegencyName, setSelectedRegencyName] = useState("");
+  const [isLoadingProvinces, setIsLoadingProvinces] = useState(false);
+  const [isLoadingRegencies, setIsLoadingRegencies] = useState(false);
+  const [useFallbackRegions, setUseFallbackRegions] = useState(false);
+
+  // role and university states
+  const [selectedRole, setSelectedRole] = useState("");
+  const [universities, setUniversities] = useState<string[]>([]);
+  const [isLoadingUnis, setIsLoadingUnis] = useState(false);
+  const [uniSearch, setUniSearch] = useState("");
+  const [isUniDropdownOpen, setIsUniDropdownOpen] = useState(false);
+  const [selectedUni, setSelectedUni] = useState("");
+
+  const isRsvpActive = event.type === "internal" && event.rsvp_enabled;
+
+  useEffect(() => {
+    if (!isRsvpActive) return;
+
+    const fetchProvinces = async () => {
+      setIsLoadingProvinces(true);
+      try {
+        const res = await fetch("/api/regional?type=provinces");
+        if (res.ok) {
+          const data = await res.json();
+          let list = Array.isArray(data) ? data : (data.data || []);
+          if (list.length > 0) {
+            const normalized = list.map((item: any) => ({
+              id: String(item.id || item.code || item.province_code || ""),
+              name: String(item.name || item.province || "")
+            })).filter((item: any) => item.id && item.name);
+
+            setProvinces(normalized);
+            setUseFallbackRegions(false);
+          } else {
+            setUseFallbackRegions(true);
+          }
+        } else {
+          setUseFallbackRegions(true);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil data provinsi:", err);
+        setUseFallbackRegions(true);
+      } finally {
+        setIsLoadingProvinces(false);
+      }
+    };
+
+    fetchProvinces();
+  }, [isRsvpActive]);
+
+  const handleProvinceSelect = async (provId: string) => {
+    setSelectedProvinceId(provId);
+    const provName = provinces.find(p => p.id === provId)?.name || "";
+    setSelectedProvinceName(provName);
+    setSelectedRegencyName("");
+    setRegencies([]);
+
+    if (!provId) return;
+
+    setIsLoadingRegencies(true);
+    try {
+      const res = await fetch(`/api/regional?type=regencies&province_id=${provId}`);
+      if (res.ok) {
+        const data = await res.json();
+        let list = Array.isArray(data) ? data : (data.data || []);
+        const normalized = list.map((item: any) => ({
+          id: String(item.id || item.code || item.regency_code || ""),
+          name: String(item.name || item.regency || "")
+        })).filter((item: any) => item.id && item.name);
+
+        setRegencies(normalized);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data kabupaten:", err);
+    } finally {
+      setIsLoadingRegencies(false);
+    }
+  };
+
+  const uniTimeoutRef = useRef<any>(null);
+
+  const fetchUniversities = async (searchQuery?: string) => {
+    setIsLoadingUnis(true);
+    try {
+      const url = searchQuery
+        ? `/api/regional?type=universities&search=${encodeURIComponent(searchQuery)}`
+        : "/api/regional?type=universities";
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        let list: string[] = [];
+        if (Array.isArray(data)) {
+          list = data.map((item: any) => typeof item === "string" ? item : item.name);
+        } else if (data && Array.isArray(data.data)) {
+          list = data.data.map((item: any) => typeof item === "string" ? item : item.name);
+        }
+        list = list.filter((name) => !!name);
+        setUniversities(list);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data universitas:", err);
+    } finally {
+      setIsLoadingUnis(false);
+    }
+  };
+
+  const fetchUniversitiesDebounced = (searchQuery: string) => {
+    if (uniTimeoutRef.current) {
+      clearTimeout(uniTimeoutRef.current);
+    }
+    uniTimeoutRef.current = setTimeout(() => {
+      fetchUniversities(searchQuery);
+    }, 400);
+  };
+
   useEffect(() => {
     if (actionData?.success) {
       toast.success("Pendaftaran RSVP berhasil! Cek tiket kamu di bawah.");
       formRef.current?.reset();
+      // Reset local states
+      setSelectedProvinceId("");
+      setSelectedProvinceName("");
+      setRegencies([]);
+      setSelectedRegencyName("");
+      setSelectedRole("");
+      setUniSearch("");
+      setSelectedUni("");
     } else if (actionData?.errors?.general) {
       toast.error(actionData.errors.general);
     }
   }, [actionData]);
 
-  const isRsvpActive = event.type === "internal" && event.rsvp_enabled;
   const isCapacityFull = event.max_attendees ? registrationCount >= event.max_attendees : false;
   const isPastEvent = !isNew;
   const isRegistrationClosed = isPastEvent || isCapacityFull;
@@ -790,61 +915,23 @@ export default function DetailEvent() {
                         )}
                       </div>
 
-                      {/* Institution */}
-                      <div className="space-y-1.5">
-                        <Label htmlFor="institution" className="text-xs">Instansi / Sekolah *</Label>
-                        <Input
-                          id="institution"
-                          name="institution"
-                          required
-                          disabled={isSubmitting}
-                          placeholder="Universitas Trunojoyo Madura"
-                          className={actionData?.errors?.institution ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
-                        />
-                        {actionData?.errors?.institution && (
-                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
-                            <AlertCircle className="w-3 h-3" />
-                            {actionData.errors.institution}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Kabupaten */}
-                      <div className="space-y-1.5">
-                        <Label htmlFor="kabupaten" className="text-xs">Kabupaten *</Label>
-                        <Select
-                          id="kabupaten"
-                          name="kabupaten"
-                          required
-                          disabled={isSubmitting}
-                          defaultValue=""
-                          className={actionData?.errors?.kabupaten ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
-                        >
-                          <SelectItem value="">-- Pilih Kabupaten --</SelectItem>
-                          <SelectItem value="Bangkalan">Bangkalan</SelectItem>
-                          <SelectItem value="Sampang">Sampang</SelectItem>
-                          <SelectItem value="Pamekasan">Pamekasan</SelectItem>
-                          <SelectItem value="Sumenep">Sumenep</SelectItem>
-                          <SelectItem value="Lainnya">Lainnya</SelectItem>
-                        </Select>
-                        {actionData?.errors?.kabupaten && (
-                          <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
-                            <AlertCircle className="w-3 h-3" />
-                            {actionData.errors.kabupaten}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Role */}
+                      {/* Role Dropdown */}
                       <div className="space-y-1.5">
                         <Label htmlFor="role" className="text-xs">Pekerjaan / Role (Opsional)</Label>
-                        <Input
+                        <Select
                           id="role"
                           name="role"
                           disabled={isSubmitting}
-                          placeholder="Mahasiswa, Software Engineer"
+                          value={selectedRole}
+                          onChange={(e) => setSelectedRole(e.target.value)}
                           className={actionData?.errors?.role ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
-                        />
+                        >
+                          <SelectItem value="">-- Pilih Pekerjaan / Role --</SelectItem>
+                          <SelectItem value="Mahasiswa">Mahasiswa</SelectItem>
+                          <SelectItem value="Pelajar">Pelajar</SelectItem>
+                          <SelectItem value="Karyawan / Profesional">Karyawan / Profesional</SelectItem>
+                          <SelectItem value="Umum / Lainnya">Umum / Lainnya</SelectItem>
+                        </Select>
                         {actionData?.errors?.role && (
                           <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
                             <AlertCircle className="w-3 h-3" />
@@ -852,6 +939,203 @@ export default function DetailEvent() {
                           </p>
                         )}
                       </div>
+
+                      {/* Institution (Conditional: Autocomplete for Student/Mahasiswa, normal Input for others) */}
+                      {selectedRole === "Mahasiswa" || selectedRole === "Pelajar" ? (
+                        <div className="space-y-1.5 relative">
+                          <Label htmlFor="institution" className="text-xs">Instansi / Sekolah *</Label>
+                          <Input
+                            id="uni-search"
+                            type="text"
+                            required
+                            disabled={isSubmitting}
+                            value={uniSearch}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setUniSearch(val);
+                              setSelectedUni("");
+                              setIsUniDropdownOpen(true);
+                              fetchUniversitiesDebounced(val);
+                            }}
+                            onFocus={() => {
+                              fetchUniversities(uniSearch);
+                              setIsUniDropdownOpen(true);
+                            }}
+                            onBlur={() => {
+                              setTimeout(() => setIsUniDropdownOpen(false), 200);
+                            }}
+                            placeholder={selectedRole === "Mahasiswa" ? "Ketik nama universitas Anda..." : "Ketik nama sekolah Anda..."}
+                            className={actionData?.errors?.institution ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                          />
+                          <input
+                            type="hidden"
+                            name="institution"
+                            value={selectedUni || uniSearch}
+                          />
+
+                          {isUniDropdownOpen && (uniSearch.length > 0 || universities.length > 0) && (
+                            <div className="absolute z-50 w-full bg-popover text-popover-foreground border border-border/85 rounded-xl mt-1 shadow-lg max-h-48 overflow-y-auto text-xs py-1">
+                              {isLoadingUnis ? (
+                                <div className="px-3 py-2 text-muted-foreground flex items-center gap-2">
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Memuat data kampus...
+                                </div>
+                              ) : (
+                                (() => {
+                                  const filtered = universities.filter((name) =>
+                                    name.toLowerCase().includes(uniSearch.toLowerCase())
+                                  ).slice(0, 15);
+
+                                  if (filtered.length === 0) {
+                                    return (
+                                      <div 
+                                        className="px-3 py-2 cursor-pointer hover:bg-accent text-muted-foreground font-medium"
+                                        onMouseDown={(e) => {
+                                          e.preventDefault();
+                                          setSelectedUni(uniSearch);
+                                          setIsUniDropdownOpen(false);
+                                        }}
+                                      >
+                                        Gunakan pencarian Anda: "{uniSearch}" (Kustom)
+                                      </div>
+                                    );
+                                  }
+
+                                  return filtered.map((uni, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="px-3 py-2 cursor-pointer hover:bg-accent font-medium transition-colors"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        setUniSearch(uni);
+                                        setSelectedUni(uni);
+                                        setIsUniDropdownOpen(false);
+                                      }}
+                                    >
+                                      {uni}
+                                    </div>
+                                  ));
+                                })()
+                              )}
+                            </div>
+                          )}
+
+                          {actionData?.errors?.institution && (
+                            <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {actionData.errors.institution}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <Label htmlFor="institution" className="text-xs">Instansi / Sekolah *</Label>
+                          <Input
+                            id="institution"
+                            name="institution"
+                            required
+                            disabled={isSubmitting}
+                            value={uniSearch}
+                            onChange={(e) => setUniSearch(e.target.value)}
+                            placeholder="Contoh: PT Kereta Api Indonesia, BUMN, Umum"
+                            className={actionData?.errors?.institution ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                          />
+                          {actionData?.errors?.institution && (
+                            <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {actionData.errors.institution}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Regional Dropdowns (Dynamic Provinces -> Regencies) */}
+                      {useFallbackRegions ? (
+                        <div className="space-y-1.5">
+                          <Label htmlFor="kabupaten" className="text-xs">Kabupaten *</Label>
+                          <Select
+                            id="kabupaten"
+                            name="kabupaten"
+                            required
+                            disabled={isSubmitting}
+                            defaultValue=""
+                            className={actionData?.errors?.kabupaten ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                          >
+                            <SelectItem value="">-- Pilih Kabupaten --</SelectItem>
+                            <SelectItem value="Bangkalan">Bangkalan</SelectItem>
+                            <SelectItem value="Sampang">Sampang</SelectItem>
+                            <SelectItem value="Pamekasan">Pamekasan</SelectItem>
+                            <SelectItem value="Sumenep">Sumenep</SelectItem>
+                            <SelectItem value="Lainnya">Lainnya</SelectItem>
+                          </Select>
+                          {actionData?.errors?.kabupaten && (
+                            <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {actionData.errors.kabupaten}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Provinsi */}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="provinsi" className="text-xs">Provinsi *</Label>
+                            <Select
+                              id="provinsi"
+                              required
+                              disabled={isSubmitting || isLoadingProvinces}
+                              value={selectedProvinceId}
+                              onChange={(e) => handleProvinceSelect(e.target.value)}
+                              className="text-sm"
+                            >
+                              <SelectItem value="">
+                                {isLoadingProvinces ? "Memuat Provinsi..." : "-- Pilih Provinsi --"}
+                              </SelectItem>
+                              {provinces.map((prov) => (
+                                <SelectItem key={prov.id} value={prov.id}>
+                                  {prov.name}
+                                </SelectItem>
+                              ))}
+                            </Select>
+                          </div>
+
+                          {/* Kabupaten */}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="kabupaten-select" className="text-xs">Kabupaten / Kota *</Label>
+                            <Select
+                              id="kabupaten-select"
+                              required
+                              disabled={isSubmitting || !selectedProvinceId || isLoadingRegencies}
+                              value={selectedRegencyName}
+                              onChange={(e) => setSelectedRegencyName(e.target.value)}
+                              className={actionData?.errors?.kabupaten ? "border-destructive focus-visible:ring-destructive text-sm" : "text-sm"}
+                            >
+                              <SelectItem value="">
+                                {isLoadingRegencies 
+                                  ? "Memuat Kabupaten/Kota..." 
+                                  : !selectedProvinceId 
+                                    ? "Pilih Provinsi terlebih dahulu" 
+                                    : "-- Pilih Kabupaten/Kota --"}
+                              </SelectItem>
+                              {regencies.map((reg) => (
+                                <SelectItem key={reg.id} value={reg.name}>
+                                  {reg.name}
+                                </SelectItem>
+                              ))}
+                            </Select>
+                            <input
+                              type="hidden"
+                              name="kabupaten"
+                              value={selectedRegencyName ? `${selectedRegencyName}, ${selectedProvinceName}` : ""}
+                            />
+                            {actionData?.errors?.kabupaten && (
+                              <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                                <AlertCircle className="w-3 h-3" />
+                                {actionData.errors.kabupaten}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Reason */}
                       <div className="space-y-1.5">

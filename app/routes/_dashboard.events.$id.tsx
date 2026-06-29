@@ -337,6 +337,41 @@ export default function EventRsvpDetailsPage() {
           </div>
         </div>
 
+        {event.price && event.price > 0 ? (
+          <>
+            {/* Paid Event Stats Cards */}
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-2 shadow-sm">
+              <div className="flex justify-between items-center text-muted-foreground">
+                <span className="text-xs uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400">Pendapatan Lunas</span>
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">💵 Pakasir</span>
+              </div>
+              <div>
+                <p className="text-3xl font-black text-foreground">
+                  Rp {(registrations.filter((r: any) => r.status === "confirmed").length * event.price).toLocaleString("id-ID")}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Dari {registrations.filter((r: any) => r.status === "confirmed").length} tiket terbayar
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-2 shadow-sm">
+              <div className="flex justify-between items-center text-muted-foreground">
+                <span className="text-xs uppercase font-bold tracking-wider text-amber-600 dark:text-amber-400">Pendapatan Pending</span>
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400">⏳ Menunggu</span>
+              </div>
+              <div>
+                <p className="text-3xl font-black text-foreground">
+                  Rp {(registrations.filter((r: any) => r.status === "pending_payment").length * event.price).toLocaleString("id-ID")}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Dari {registrations.filter((r: any) => r.status === "pending_payment").length} pendaftar pending
+                </p>
+              </div>
+            </div>
+          </>
+        ) : null}
+
         {/* Event Schedule */}
         <div className="rounded-2xl border bg-card p-5 space-y-2 shadow-sm">
           <div className="flex justify-between items-center text-muted-foreground">

@@ -44,6 +44,7 @@ export default [
   route("auth/delete-team", "routes/auth.delete-team.tsx"),
   route("auth/delete-community", "routes/auth.delete-community.tsx"),
   route("api/pakasir-webhook", "routes/api.pakasir-webhook.ts"),
+  route("api/regional", "routes/api.regional.ts"),
 
   // Social redirect routes
   route("instagram", "routes/instagram.tsx"),

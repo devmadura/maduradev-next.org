@@ -361,12 +361,24 @@ export default function TicketPage() {
             </div>
 
             {registration.status === "confirmed" && (
-              <button
-                onClick={() => window.print()}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-border bg-card hover:bg-muted text-foreground text-xs font-bold transition-colors shadow-sm cursor-pointer print:hidden"
-              >
-                📥 Download / Cetak Tiket PDF
-              </button>
+              <>
+                <div className="flex gap-2.5 items-start bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 rounded-xl p-3.5 text-xs text-left print:hidden">
+                  <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+                  <div className="space-y-1">
+                    <p className="font-bold text-amber-800 dark:text-amber-300">Simpan Tiket Anda!</p>
+                    <p className="text-[11px] leading-relaxed text-amber-700/95 dark:text-amber-200/90">
+                      Unduh file PDF tiket di bawah atau lakukan tangkapan layar (screenshot) QR Code di atas. Jaringan internet di lokasi event mungkin tidak stabil; dengan menyimpannya secara offline, proses check-in Anda akan menjadi lebih mudah dan cepat.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-border bg-card hover:bg-muted text-foreground text-xs font-bold transition-colors shadow-sm cursor-pointer print:hidden"
+                >
+                  📥 Download / Cetak Tiket PDF
+                </button>
+              </>
             )}
           </div>
         </div>

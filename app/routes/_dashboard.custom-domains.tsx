@@ -164,11 +164,11 @@ export async function action({ request }: Route.ActionArgs) {
 
     // Validation
     if (!subdomain) return { success: false, error: "Subdomain is required" };
-    if (!/^[a-z0-9-]+$/.test(subdomain)) {
+    if (!/^[a-z0-9_-]+$/.test(subdomain)) {
       return {
         success: false,
         error:
-          "Subdomain must contain only lowercase alphanumeric characters and hyphens.",
+          "Subdomain must contain only lowercase alphanumeric characters, hyphens, and underscores.",
       };
     }
     if (!recordType) return { success: false, error: "Record Type is required" };
@@ -248,11 +248,11 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (!id) return { success: false, error: "ID is required for update" };
     if (!subdomain) return { success: false, error: "Subdomain is required" };
-    if (!/^[a-z0-9-]+$/.test(subdomain)) {
+    if (!/^[a-z0-9_-]+$/.test(subdomain)) {
       return {
         success: false,
         error:
-          "Subdomain must contain only lowercase alphanumeric characters and hyphens.",
+          "Subdomain must contain only lowercase alphanumeric characters, hyphens, and underscores.",
       };
     }
     if (!recordType) return { success: false, error: "Record Type is required" };
@@ -509,9 +509,9 @@ export default function CustomDomainsPage() {
       toast.error("Subdomain tidak boleh kosong");
       return;
     }
-    if (!/^[a-z0-9-]+$/.test(subdomain)) {
+    if (!/^[a-z0-9_-]+$/.test(subdomain)) {
       toast.error(
-        "Subdomain hanya boleh berisi huruf kecil, angka, dan strip (-)"
+        "Subdomain hanya boleh berisi huruf kecil, angka, strip (-), dan underscore (_)"
       );
       return;
     }
@@ -778,7 +778,7 @@ export default function CustomDomainsPage() {
                 </span>
               </div>
               <p className="text-[10px] text-muted-foreground leading-normal">
-                Hanya gunakan huruf kecil, angka, dan tanda strip (-)
+                Hanya gunakan huruf kecil, angka, tanda strip (-), dan underscore (_). Contoh: <code>_acme-challenge</code>, <code>_dmarc</code>
               </p>
             </div>
 
@@ -808,7 +808,11 @@ export default function CustomDomainsPage() {
                     ? "cname.vercel-dns.com."
                     : recordType === "A"
                       ? "192.168.1.1"
-                      : "Value/target record"
+                      : recordType === "AAAA"
+                        ? "2001:db8::1"
+                        : recordType === "TXT"
+                          ? "\"v=spf1 include:example.com ~all\""
+                          : "Value/target record"
                 }
                 disabled={loading}
                 required

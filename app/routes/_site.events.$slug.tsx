@@ -1,5 +1,4 @@
-// Verification Comment
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -285,20 +284,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-export default function DetailEvent() {
-  const { event, isNew, registrationCount, currentUserRegistration, loggedInUser } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
-
-  const formRef = useRef<HTMLFormElement>(null);
-  const descriptionRef = useRef<HTMLDivElement>(null);
-
-  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([]);
+const MarkdownRenderer = memo(({ content }: { content: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!descriptionRef.current) return;
-    const preElements = descriptionRef.current.querySelectorAll("pre");
+    if (!containerRef.current) return;
+    const preElements = containerRef.current.querySelectorAll("pre");
 
     preElements.forEach((pre) => {
       if (pre.querySelector(".copy-code-btn")) return;
@@ -340,7 +331,28 @@ export default function DetailEvent() {
 
       pre.appendChild(button);
     });
-  }, [event.description]);
+  }, [content]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="prose prose-lg dark:prose-invert max-w-none prose-headings:text-foreground prose-headings:font-display prose-p:text-muted-foreground/95 prose-a:text-primary leading-relaxed"
+      dangerouslySetInnerHTML={{ __html: content }}
+    />
+  );
+});
+
+MarkdownRenderer.displayName = "MarkdownRenderer";
+
+export default function DetailEvent() {
+  const { event, isNew, registrationCount, currentUserRegistration, loggedInUser } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([]);
   const [selectedProvinceId, setSelectedProvinceId] = useState("");
   const [selectedProvinceName, setSelectedProvinceName] = useState("");
   const [regencies, setRegencies] = useState<{ id: string; name: string }[]>([]);
@@ -596,11 +608,7 @@ export default function DetailEvent() {
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 font-display">
                 Tentang Event
               </h2>
-              <div
-                ref={descriptionRef}
-                className="prose prose-lg dark:prose-invert max-w-none prose-headings:text-foreground prose-headings:font-display prose-p:text-muted-foreground/95 prose-a:text-primary leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: event.description }}
-              />
+              <MarkdownRenderer content={event.description} />
             </motion.div>
           </div>
 

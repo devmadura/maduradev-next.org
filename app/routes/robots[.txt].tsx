@@ -1,6 +1,6 @@
 import type { Route } from "./+types/robots[.txt]";
 
-const SITE_URL = "https://maduradev-next.org";
+const SITE_URL = "https://madura.dev";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const content = `# robots.txt for MaduraDev

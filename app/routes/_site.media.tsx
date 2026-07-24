@@ -1,7 +1,7 @@
 import type { Route } from "./+types/_site.media";
 import { useState, useMemo } from "react";
 import { Link } from "react-router";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getAllMediaPosts } from "@/lib/media";
 import { motion, type Variants } from "motion/react";
 import { Calendar, Clock, Newspaper, ChevronRight, BookOpen } from "lucide-react";
@@ -17,8 +17,8 @@ export const meta: Route.MetaFunction = () => [
   { name: "twitter:card", content: "summary_large_image" },
 ];
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const supabase = createClient(request);
+export async function loader() {
+  const supabase = createAdminClient();
   const posts = await getAllMediaPosts(supabase, { status: "published" });
   return { posts };
 }

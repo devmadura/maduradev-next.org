@@ -14,14 +14,22 @@ export const MarkdownRenderer = memo(({ content, className }: MarkdownRendererPr
     const preElements = containerRef.current.querySelectorAll("pre");
 
     preElements.forEach((pre) => {
-      if (pre.querySelector(".copy-code-btn")) return;
+      if (pre.parentElement?.classList.contains("code-block-wrapper")) return;
+
+      // Create a wrapper div
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-block-wrapper relative group";
+
+      // Insert wrapper before pre, and move pre inside wrapper
+      pre.parentNode?.insertBefore(wrapper, pre);
+      wrapper.appendChild(pre);
 
       pre.style.position = "relative";
       pre.style.paddingRight = "3rem";
 
       const button = document.createElement("button");
       button.className =
-        "copy-code-btn absolute right-3 top-3 p-1.5 rounded-lg bg-muted border border-border text-muted-foreground hover:text-foreground transition-colors focus:outline-none cursor-pointer flex items-center justify-center";
+        "copy-code-btn absolute right-3 top-3 p-1.5 rounded-lg bg-muted border border-border text-muted-foreground hover:text-foreground transition-colors focus:outline-none cursor-pointer flex items-center justify-center z-10";
       button.type = "button";
       button.setAttribute("aria-label", "Copy code");
 
@@ -54,7 +62,7 @@ export const MarkdownRenderer = memo(({ content, className }: MarkdownRendererPr
           });
       });
 
-      pre.appendChild(button);
+      wrapper.appendChild(button);
     });
   }, [content]);
 

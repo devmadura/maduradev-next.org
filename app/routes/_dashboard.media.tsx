@@ -1,7 +1,7 @@
 import type { Route } from "./+types/_dashboard.media";
 import { Link, useLoaderData } from "react-router";
 import { useState, useMemo } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getAllMediaPosts } from "@/lib/media";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,8 +21,8 @@ export const meta: Route.MetaFunction = () => [
   { title: "Media - Dashboard MaduraDev" },
 ];
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const supabase = createClient(request);
+export async function loader() {
+  const supabase = createAdminClient();
   const posts = await getAllMediaPosts(supabase);
   return { posts };
 }

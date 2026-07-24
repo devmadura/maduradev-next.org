@@ -1,13 +1,13 @@
 import type { Route } from "./+types/_site.media.$slug";
 import { Link, useLoaderData } from "react-router";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getMediaPostBySlug, getAllMediaPosts } from "@/lib/media";
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer";
 import { motion } from "motion/react";
 import { Calendar, Clock, Newspaper, ArrowLeft, ChevronRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export const meta: Route.MetaFunction<typeof loader> = ({ data }) => {
+export const meta: Route.MetaFunction = ({ data }) => {
   if (!data?.post) return [{ title: "Artikel tidak ditemukan" }];
   const post = data.post;
   return [
@@ -25,8 +25,8 @@ export const meta: Route.MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-export async function loader({ params, request }: Route.LoaderArgs) {
-  const supabase = createClient(request);
+export async function loader({ params }: Route.LoaderArgs) {
+  const supabase = createAdminClient();
   const post = await getMediaPostBySlug(supabase, params.slug);
 
   if (!post) {

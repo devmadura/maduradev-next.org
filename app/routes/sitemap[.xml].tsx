@@ -1,7 +1,7 @@
 import type { Route } from "./+types/sitemap[.xml]";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const SITE_URL = "https://maduradev-next.org";
+const SITE_URL = "https://madura.dev";
 
 const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "weekly" },

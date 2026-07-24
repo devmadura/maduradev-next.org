@@ -4,24 +4,38 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getMediaPostBySlug, getAllMediaPosts } from "@/lib/media";
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer";
 import { motion } from "motion/react";
-import { Calendar, Clock, Newspaper, ArrowLeft, ChevronRight, User } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Newspaper,
+  ArrowLeft,
+  ChevronRight,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const meta: Route.MetaFunction = ({ data }) => {
   if (!data?.post) return [{ title: "Artikel tidak ditemukan" }];
   const post = data.post;
   return [
-    { title: `${post.title} - MaduraDev Media` },
+    { title: `${post.title} - MaduraDev` },
     { name: "description", content: post.summary },
-    { name: "keywords", content: `blog developer, kabar komunitas, ${post.title}, programmer madura` },
+    {
+      name: "keywords",
+      content: `blog developer, kabar komunitas, ${post.title}, programmer madura`,
+    },
     { property: "og:title", content: `${post.title} - MaduraDev Media` },
     { property: "og:description", content: post.summary },
     { property: "og:type", content: "article" },
-    ...(post.image_url ? [{ property: "og:image", content: post.image_url }] : []),
+    ...(post.image_url
+      ? [{ property: "og:image", content: post.image_url }]
+      : []),
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: post.title },
     { name: "twitter:description", content: post.summary },
-    ...(post.image_url ? [{ name: "twitter:image", content: post.image_url }] : []),
+    ...(post.image_url
+      ? [{ name: "twitter:image", content: post.image_url }]
+      : []),
   ];
 };
 
@@ -34,7 +48,10 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 
   // Fetch recent posts for recommendations (excluding current)
-  const allPosts = await getAllMediaPosts(supabase, { status: "published", limit: 4 });
+  const allPosts = await getAllMediaPosts(supabase, {
+    status: "published",
+    limit: 4,
+  });
   const recommendations = allPosts.filter((p) => p.id !== post.id).slice(0, 3);
 
   return { post, recommendations };
@@ -64,7 +81,11 @@ export default function MediaDetailPage() {
       <div className="relative z-10 container px-6 max-w-4xl mx-auto space-y-8">
         {/* Back navigation */}
         <div className="flex items-center">
-          <Button asChild variant="ghost" className="gap-2 -ml-4 text-muted-foreground hover:text-foreground">
+          <Button
+            asChild
+            variant="ghost"
+            className="gap-2 -ml-4 text-muted-foreground hover:text-foreground"
+          >
             <Link to="/media">
               <ArrowLeft className="w-4 h-4" /> Kembali ke Media
             </Link>

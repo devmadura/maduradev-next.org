@@ -7,6 +7,7 @@ const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
   { path: "/events", priority: "0.9", changefreq: "weekly" },
   { path: "/teams", priority: "0.8", changefreq: "monthly" },
+  { path: "/media", priority: "0.8", changefreq: "monthly" },
   { path: "/community", priority: "0.8", changefreq: "monthly" },
   { path: "/twibbon", priority: "0.6", changefreq: "monthly" },
 ];
@@ -34,7 +35,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       <lastmod>${now}</lastmod>
       <changefreq>${page.changefreq}</changefreq>
       <priority>${page.priority}</priority>
-    </url>`
+    </url>`,
   ).join("");
 
   const eventEntries = eventSlugs
@@ -45,7 +46,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       <lastmod>${now}</lastmod>
       <changefreq>monthly</changefreq>
       <priority>0.7</priority>
-    </url>`
+    </url>`,
     )
     .join("");
 

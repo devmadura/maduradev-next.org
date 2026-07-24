@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useFetcher } from "react-router";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,10 +15,15 @@ import { DeleteTeamButton } from "@/components/dashboard/delete-team-button";
 
 interface EditTeamFormProps {
   member: CoreTeam;
+  initialPermissions?: {
+    can_manage_events: boolean;
+    can_manage_media: boolean;
+  };
 }
 
-export function EditTeamForm({ member }: EditTeamFormProps) {
+export function EditTeamForm({ member, initialPermissions }: EditTeamFormProps) {
   const navigate = useNavigate();
+  const fetcher = useFetcher();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -31,6 +36,11 @@ export function EditTeamForm({ member }: EditTeamFormProps) {
     portfolio: member.portfolio || "",
     order_index: member.order_index,
     is_active: member.is_active,
+  });
+
+  const [permissions, setPermissions] = useState({
+    can_manage_events: initialPermissions?.can_manage_events || false,
+    can_manage_media: initialPermissions?.can_manage_media || false,
   });
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -68,13 +78,37 @@ export function EditTeamForm({ member }: EditTeamFormProps) {
       avatar_url = publicUrl;
     }
 
-    const { error } = await supabase.from("core_team").update({ ...formData, avatar_url }).eq("id", member.id);
-
-    if (error) { toast.error("Gagal mengupdate anggota: " + error.message); setLoading(false); return; }
-
-    toast.success("Anggota berhasil diupdate");
-    navigate("/dashboard/team");
+    fetcher.submit(
+      {
+        name: formData.name,
+        position: formData.position,
+        description: formData.description,
+        instagram: formData.instagram,
+        linkedin: formData.linkedin,
+        github: formData.github,
+        portfolio: formData.portfolio,
+        order_index: formData.order_index.toString(),
+        is_active: formData.is_active.toString(),
+        avatar_url: avatar_url || "",
+        can_manage_events: permissions.can_manage_events.toString(),
+        can_manage_media: permissions.can_manage_media.toString(),
+      },
+      { method: "post" }
+    );
   };
+
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      const data = fetcher.data as { success: boolean; error?: string };
+      setLoading(false);
+      if (data.success) {
+        toast.success("Anggota berhasil diupdate");
+        navigate("/dashboard/team");
+      } else {
+        toast.error(data.error || "Gagal mengupdate anggota");
+      }
+    }
+  }, [fetcher.state, fetcher.data, navigate]);
 
   return (
     <div className="space-y-6">
@@ -126,6 +160,37 @@ export function EditTeamForm({ member }: EditTeamFormProps) {
             <div className="flex items-center justify-between"><div><Label>Status Aktif</Label><p className="text-sm text-muted-foreground">Tampilkan anggota di website publik</p></div><Switch checked={formData.is_active} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked }))} /></div>
           </CardContent>
         </Card>
+
+        {member.user_id && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Akses Dashboard</CardTitle>
+              <CardDescription>Atur hak akses dashboard untuk anggota ini</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Kelola Event</Label>
+                  <p className="text-xs text-muted-foreground">Izinkan anggota ini menambah, mengedit, dan menghapus event</p>
+                </div>
+                <Switch
+                  checked={permissions.can_manage_events}
+                  onCheckedChange={(checked) => setPermissions(prev => ({ ...prev, can_manage_events: checked }))}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Kelola Media</Label>
+                  <p className="text-xs text-muted-foreground">Izinkan anggota ini mengelola berita (Kabar Dev) dan blog (Blog Dev)</p>
+                </div>
+                <Switch
+                  checked={permissions.can_manage_media}
+                  onCheckedChange={(checked) => setPermissions(prev => ({ ...prev, can_manage_media: checked }))}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex gap-4 justify-between items-center">
           <div className="flex gap-4">

@@ -10,6 +10,8 @@ export default [
     route("teams/:slug", "routes/_site.teams.$slug.tsx"),
     route("twibbon", "routes/_site.twibbon.tsx"),
     route("community", "routes/_site.community.tsx"),
+    route("media", "routes/_site.media.tsx"),
+    route("media/:slug", "routes/_site.media.$slug.tsx"),
   ]),
 
   // Public ticket page (no auth required)
@@ -32,6 +34,9 @@ export default [
     route("communities/create", "routes/_dashboard.communities.create.tsx"),
     route("communities/:id/edit", "routes/_dashboard.communities.$id.edit.tsx"),
     route("custom-domains", "routes/_dashboard.custom-domains.tsx"),
+    route("media", "routes/_dashboard.media.tsx"),
+    route("media/create", "routes/_dashboard.media.create.tsx"),
+    route("media/:id/edit", "routes/_dashboard.media.$id.edit.tsx"),
   ]),
 
   // Login
@@ -43,6 +48,7 @@ export default [
   route("auth/delete-event", "routes/auth.delete-event.tsx"),
   route("auth/delete-team", "routes/auth.delete-team.tsx"),
   route("auth/delete-community", "routes/auth.delete-community.tsx"),
+  route("auth/delete-media-post", "routes/auth.delete-media-post.tsx"),
   route("api/pakasir-webhook", "routes/api.pakasir-webhook.ts"),
   route("api/regional", "routes/api.regional.ts"),
 

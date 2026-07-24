@@ -5,6 +5,8 @@ export type EventFormat = "webinar" | "workshop" | "bootcamp" | "bincang-bincang
 export interface UserProfile {
   id: string;
   role: UserRole;
+  can_manage_events?: boolean;
+  can_manage_media?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -60,6 +62,21 @@ export interface Community {
   region: string;
   order_index: number;
   is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MediaPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  summary: string;
+  image_url: string | null;
+  type: "kabar" | "blog";
+  status: "published" | "draft";
+  author_id: string | null;
+  published_at: string;
   created_at?: string;
   updated_at?: string;
 }

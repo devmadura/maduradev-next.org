@@ -23,6 +23,7 @@ const programmingTags = [
 ];
 
 const quickLinks = [
+  { name: "Media", url: "/media" },
   { name: "Telegram", url: "/telegram" },
   { name: "Instagram", url: "/instagram" },
   { name: "GitHub", url: "/github" },

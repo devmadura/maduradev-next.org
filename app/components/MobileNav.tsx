@@ -1,4 +1,4 @@
-import { Home, Users, Calendar, MessageSquare, Camera } from "lucide-react";
+import { Home, Users, Calendar, Camera, Newspaper } from "lucide-react";
 import { Link, useLocation } from "react-router";
 
 const leftItems = [
@@ -8,7 +8,7 @@ const leftItems = [
 
 const rightItems = [
   { icon: Calendar, label: "Events", url: "/events" },
-  { icon: MessageSquare, label: "Forum", url: "/telegram" },
+  { icon: Newspaper, label: "Media", url: "/media" },
 ];
 
 export default function MobileNav() {

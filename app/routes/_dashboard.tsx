@@ -13,6 +13,7 @@ const adminOnlyPaths = [
   "/dashboard/team",
   "/dashboard/settings",
   "/dashboard/custom-domains",
+  "/dashboard/media",
 ];
 
 export const meta: Route.MetaFunction = () => [
@@ -43,12 +44,23 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
 
   if (profile.role === "core_team") {
-    const isAdminOnly = adminOnlyPaths.some((path) =>
-      url.pathname.startsWith(path)
-    );
-    const isOverview = url.pathname === "/dashboard";
+    const isEventPath = url.pathname.startsWith("/dashboard/events");
+    const isMediaPath = url.pathname.startsWith("/dashboard/media");
 
-    if (isAdminOnly || isOverview) {
+    if (isEventPath && !profile.can_manage_events) {
+      throw redirect("/dashboard/profile");
+    }
+    if (isMediaPath && !profile.can_manage_media) {
+      throw redirect("/dashboard/profile");
+    }
+
+    const isStrictAdmin = [
+      "/dashboard/team",
+      "/dashboard/settings",
+      "/dashboard/custom-domains",
+    ].some((path) => url.pathname.startsWith(path)) || url.pathname === "/dashboard";
+
+    if (isStrictAdmin) {
       throw redirect("/dashboard/profile");
     }
   }

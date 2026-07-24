@@ -14,6 +14,10 @@ const navLinks = [
     name: "Team",
     url: "/teams",
   },
+  {
+    name: "Media",
+    url: "/media",
+  },
 ];
 
 export default function Navbar() {

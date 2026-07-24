@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate, useRouteLoaderData } from "react-router";
 import {
   Calendar,
@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   MapPin,
   Globe,
+  Newspaper,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,6 +33,7 @@ const adminMenuItems = [
   { title: "Events", url: "/dashboard/events", icon: Calendar },
   { title: "Core Team", url: "/dashboard/team", icon: Users },
   { title: "Communities", url: "/dashboard/communities", icon: MapPin },
+  { title: "Media", url: "/dashboard/media", icon: Newspaper },
   { title: "Domains", url: "/dashboard/custom-domains", icon: Globe },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
 ];
@@ -47,7 +49,7 @@ export function DashboardSidebar() {
 
   // Get role from parent layout loader data (server-side, no flash)
   const loaderData = useRouteLoaderData("routes/_dashboard") as
-    | { profile: { role: UserRole } }
+    | { profile: { role: UserRole; can_manage_events?: boolean; can_manage_media?: boolean } }
     | undefined;
   const role = loaderData?.profile?.role ?? "core_team";
 
@@ -58,7 +60,22 @@ export function DashboardSidebar() {
     }
   }, [pathname]);
 
-  const menuItems = role === "admin" ? adminMenuItems : coreTeamMenuItems;
+  const menuItems = useMemo(() => {
+    if (role === "admin") {
+      return adminMenuItems;
+    }
+
+    const items = [...coreTeamMenuItems];
+
+    if (loaderData?.profile?.can_manage_events) {
+      items.push({ title: "Events", url: "/dashboard/events", icon: Calendar });
+    }
+    if (loaderData?.profile?.can_manage_media) {
+      items.push({ title: "Media", url: "/dashboard/media", icon: Newspaper });
+    }
+
+    return items;
+  }, [role, loaderData]);
 
   const handleLogout = async () => {
     const client = createClient();

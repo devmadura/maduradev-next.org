@@ -7,8 +7,8 @@ import type { Community } from "@/lib/supabase/types";
 
 export const meta = () => [
   { title: "Komunitas - MaduraDev" },
-  { name: "description", content: "Daftar semua komunitas developer di Pulau Madura: Bangkalan Dev, Sampang Dev, Pamekasan Dev, Sumenep Dev, dan lainnya." },
-  { name: "keywords", content: "komunitas developer madura, bangkalan dev, sampang dev, pamekasan dev, sumenep dev, komunitas programmer madura, peta komunitas madura" },
+  { name: "description", content: "Daftar semua komunitas developer di Pulau Madura: Sampang Dev, Pamekasan Dev, Sumenep Dev, dan lainnya." },
+  { name: "keywords", content: "komunitas developer madura, sampang dev, pamekasan dev, sumenep dev, komunitas programmer madura, peta komunitas madura" },
   { property: "og:title", content: "Komunitas Developer Madura - MaduraDev" },
   { property: "og:description", content: "Jelajahi semua komunitas developer yang tersebar di 4 kabupaten Pulau Madura." },
   { property: "og:type", content: "website" },

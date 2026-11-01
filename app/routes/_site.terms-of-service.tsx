@@ -44,7 +44,7 @@ export const meta = () => [
   {
     name: "twitter:description",
     content:
-      "Panduan resmi penggunaan ekosistem MaduraDev untuk komunitas developer Bangkalan, Sampang, Pamekasan, dan Sumenep.",
+      "Panduan resmi penggunaan ekosistem MaduraDev untuk komunitas developer di Pulau Madura.",
   },
   {
     tagName: "link",
@@ -296,7 +296,7 @@ export default function TermsOfServicePage() {
                   <code className="px-1.5 py-0.5 rounded bg-muted text-foreground text-xs font-mono">
                     /dashboard
                   </code>
-                  ) diberikan secara khusus kepada koordinator dan pengurus komunitas terverifikasi di Bangkalan, Sampang, Pamekasan, dan Sumenep:
+                  ) diberikan secara khusus kepada koordinator dan pengurus komunitas terverifikasi di wilayah Pulau Madura:
                 </p>
                 <ul className="space-y-1.5 list-disc list-inside pl-2">
                   <li>

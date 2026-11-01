@@ -236,7 +236,7 @@ export default function EditCommunityPage() {
                       instagram: e.target.value,
                     }))
                   }
-                  placeholder="bangkalandev"
+                  placeholder="sampangdev"
                 />
               </div>
               <div className="space-y-2">

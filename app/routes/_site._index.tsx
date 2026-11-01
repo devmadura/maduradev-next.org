@@ -15,7 +15,7 @@ export const meta: Route.MetaFunction = () => [
     content:
       "Gabung dengan komunitas developer terbesar di Pulau Madura. Events, workshop, bootcamp, dan networking untuk programmer dari Bangkalan, Sampang, Pamekasan, dan Sumenep.",
   },
-  { name: "keywords", content: "komunitas developer madura, bangkalan dev, sampang dev, pamekasan dev, sumenep dev, programmer madura" },
+  { name: "keywords", content: "komunitas developer madura, sampang dev, pamekasan dev, sumenep dev, programmer madura" },
   { property: "og:title", content: "MaduraDev - Komunitas Developer Madura" },
   {
     property: "og:description",

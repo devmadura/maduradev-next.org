@@ -2,7 +2,6 @@ import { Link } from "react-router";
 import { Globe, Users2, Share2 } from "lucide-react";
 
 const partners = [
-  "bangkalan-dev.webp",
   "pamekasan-dev.webp",
   "sampang-dev.webp",
   "sumenep-dev.webp",

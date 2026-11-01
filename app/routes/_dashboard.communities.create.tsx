@@ -204,7 +204,7 @@ export default function CreateCommunityPage() {
                   id="name"
                   value={formData.name}
                   onChange={handleNameChange}
-                  placeholder="Bangkalan Dev"
+                  placeholder="Sampang Dev"
                   required
                 />
               </div>
@@ -216,7 +216,7 @@ export default function CreateCommunityPage() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, slug: e.target.value }))
                   }
-                  placeholder="bangkalan-dev"
+                  placeholder="sampang-dev"
                   required
                 />
               </div>
@@ -234,7 +234,7 @@ export default function CreateCommunityPage() {
                       instagram: e.target.value,
                     }))
                   }
-                  placeholder="bangkalandev"
+                  placeholder="sampangdev"
                 />
               </div>
               <div className="space-y-2">

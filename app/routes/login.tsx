@@ -152,11 +152,11 @@ export default function LoginPage() {
           <div className="relative z-10 max-w-lg space-y-8 my-auto py-10">
             <div className="space-y-4">
               <h1 className="text-4xl xl:text-5xl font-black text-foreground font-display tracking-tight leading-[1.08]">
-                Wadah Kolaborasi <br />
+                Ruang Kolaborasi <br />
                 <span className="text-primary italic">Developer Madura.</span>
               </h1>
               <p className="text-muted-foreground text-base leading-relaxed">
-                Portal terintegrasi untuk mengelola kegiatan, jejaring komunitas di 4 kabupaten, twibbon interaktif, dan materi edukasi.
+                Portal kolaborasi terbuka untuk berbagi kegiatan, jejaring komunitas di 4 kabupaten, twibbon interaktif, dan materi edukasi.
               </p>
             </div>
 

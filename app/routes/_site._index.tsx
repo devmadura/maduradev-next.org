@@ -13,7 +13,7 @@ export const meta: Route.MetaFunction = () => [
   {
     name: "description",
     content:
-      "Gabung dengan komunitas developer terbesar di Pulau Madura. Events, workshop, bootcamp, dan networking untuk programmer dari Bangkalan, Sampang, Pamekasan, dan Sumenep.",
+      "Jaringan kolaborasi terbuka developer dan pegiat IT di Pulau Madura. Events, workshop, bootcamp, dan networking lintas komunitas dan talenta teknologi.",
   },
   { name: "keywords", content: "komunitas developer madura, sampang dev, pamekasan dev, sumenep dev, programmer madura" },
   { property: "og:title", content: "MaduraDev - Komunitas Developer Madura" },
@@ -51,7 +51,7 @@ export default function Home() {
       "https://github.com/maduradevcommunity",
       "https://instagram.com/madura.dev",
     ],
-    description: "Komunitas pengembang teknologi dan perangkat lunak di Pulau Madura.",
+    description: "Jaringan kolaborasi terbuka pengembang teknologi dan perangkat lunak di Pulau Madura.",
   };
 
   const webSiteJsonLd = {

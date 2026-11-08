@@ -28,7 +28,7 @@ export const meta: Route.MetaFunction = () => [
   {
     name: "description",
     content:
-      "MaduraDev adalah komunitas programming dan developer di Pulau Madura. Gabung dengan developer dari Bangkalan, Sampang, Pamekasan, dan Sumenep.",
+      "MaduraDev adalah jaringan kolaborasi terbuka developer dan pegiat teknologi di Pulau Madura. Ruang temu untuk bertumbuh bersama komunitas lokal dan talenta IT.",
   },
   { name: "keywords", content: "maduradev, komunitas developer madura, programming madura, developer sampang, developer pamekasan, developer sumenep, komunitas programmer indonesia, coding madura, tech community madura" },
   { name: "author", content: "MaduraDev" },
@@ -37,7 +37,7 @@ export const meta: Route.MetaFunction = () => [
   {
     property: "og:description",
     content:
-      "Komunitas programming dan developer di Pulau Madura. Events, workshop, dan networking untuk developer Madura.",
+      "Jaringan kolaborasi terbuka developer di Pulau Madura. Events, workshop, dan networking untuk talenta teknologi Madura.",
   },
   { property: "og:site_name", content: "MaduraDev" },
   { property: "og:locale", content: "id_ID" },
@@ -79,7 +79,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               url: "https://madura.dev",
               logo: "https://madura.dev/image.jpg",
               description:
-                "Komunitas programming dan developer di Pulau Madura. Events, workshop, dan networking untuk developer Madura.",
+                "Jaringan kolaborasi terbuka programming dan developer di Pulau Madura. Events, workshop, dan networking untuk talenta teknologi Madura.",
               sameAs: [
                 "https://instagram.com/maduradev",
                 "https://t.me/maduradev",

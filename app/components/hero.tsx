@@ -60,7 +60,7 @@ export default function HeroSection() {
             variants={itemVariants}
             className="text-5xl md:text-8xl font-black text-foreground leading-[0.9] tracking-tighter mb-8 font-display"
           >
-            Wadahnya <br />
+            Ruang Kolaborasi <br />
             <span className="text-primary italic">Developer Madura</span>
           </motion.h1>
 
@@ -68,7 +68,7 @@ export default function HeroSection() {
             variants={itemVariants}
             className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed mb-10"
           >
-            MaduraDev adalah komunitas developer yang berbasis di Madura. Kami hadir sebagai wadah bagi para pegiat IT lokal untuk belajar, berbagi, dan berkolaborasi dalam membangun ekosistem digital yang positif dan berkelanjutan di Madura.
+            MaduraDev adalah jaringan kolaborasi terbuka antardeveloper di Madura. Kami hadir sebagai jembatan penghubung bagi para pegiat IT dan komunitas lokal untuk belajar, berbagi, dan berjejaring bersama secara mandiri dan inklusif.
           </motion.p>
 
           <motion.div

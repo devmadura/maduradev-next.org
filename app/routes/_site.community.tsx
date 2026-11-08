@@ -6,17 +6,17 @@ import { getAllCommunities, groupCommunitiesByRegion } from "@/lib/community";
 import type { Community } from "@/lib/supabase/types";
 
 export const meta = () => [
-  { title: "Komunitas - MaduraDev" },
-  { name: "description", content: "Daftar semua komunitas developer di Pulau Madura: Sampang Dev, Pamekasan Dev, Sumenep Dev, dan lainnya." },
-  { name: "keywords", content: "komunitas developer madura, sampang dev, pamekasan dev, sumenep dev, komunitas programmer madura, peta komunitas madura" },
-  { property: "og:title", content: "Komunitas Developer Madura - MaduraDev" },
-  { property: "og:description", content: "Jelajahi semua komunitas developer yang tersebar di 4 kabupaten Pulau Madura." },
+  { title: "Direktori Komunitas - MaduraDev" },
+  { name: "description", content: "Direktori komunitas developer independen di Pulau Madura: Sampang Dev, Pamekasan Dev, Sumenep Dev, dan lainnya yang saling terhubung dalam jaringan kolaborasi terbuka." },
+  { name: "keywords", content: "komunitas developer madura, sampang dev, pamekasan dev, sumenep dev, komunitas programmer madura, peta komunitas madura, direktori komunitas madura" },
+  { property: "og:title", content: "Direktori Komunitas Developer Madura - MaduraDev" },
+  { property: "og:description", content: "Direktori komunitas developer independen yang berjejaring di 4 kabupaten Pulau Madura." },
   { property: "og:type", content: "website" },
   { property: "og:url", content: "https://madura.dev/community" },
   { property: "og:image", content: "https://madura.dev/image.jpg" },
   { name: "twitter:card", content: "summary_large_image" },
-  { name: "twitter:title", content: "Komunitas Developer Madura - MaduraDev" },
-  { name: "twitter:description", content: "Jelajahi semua komunitas developer yang tersebar di 4 kabupaten Pulau Madura." },
+  { name: "twitter:title", content: "Direktori Komunitas Developer Madura - MaduraDev" },
+  { name: "twitter:description", content: "Direktori komunitas developer independen yang berjejaring di 4 kabupaten Pulau Madura." },
   { name: "twitter:image", content: "https://madura.dev/image.jpg" },
   { tagName: "link", rel: "canonical", href: "https://madura.dev/community" },
 ];
@@ -56,8 +56,8 @@ export default function CommunityPage() {
   const communityItemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Komunitas Developer Madura",
-    description: "Daftar komunitas developer yang tersebar di 4 kabupaten Pulau Madura.",
+    name: "Direktori Komunitas Developer Madura",
+    description: "Direktori komunitas developer independen yang berjejaring di 4 kabupaten Pulau Madura.",
     url: "https://madura.dev/community",
     itemListElement: communities.map((comm, index) => ({
       "@type": "ListItem",
@@ -65,7 +65,7 @@ export default function CommunityPage() {
       item: {
         "@type": "Organization",
         name: comm.name,
-        description: `Komunitas developer ${comm.name} di ${comm.region}, Madura.`,
+        description: `Komunitas developer independen ${comm.name} di ${comm.region}, Madura.`,
         url: comm.instagram || "https://madura.dev/community",
         address: {
           "@type": "PostalAddress",
@@ -95,7 +95,7 @@ export default function CommunityPage() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full mb-6">
               <span className="font-label text-[10px] font-bold uppercase tracking-widest">
-                Community
+                Community Directory
               </span>
               <span className="w-1 h-1 rounded-full bg-primary" />
               <span className="font-label text-[10px] font-bold uppercase tracking-widest">
@@ -103,14 +103,18 @@ export default function CommunityPage() {
               </span>
             </div>
             <h1 className="text-4xl md:text-6xl font-black text-foreground leading-[1] tracking-tighter mb-4 font-display">
-              Semua <span className="text-primary italic">Komunitas</span>
+              Direktori <span className="text-primary italic">Komunitas</span>
               <br />
               Developer Madura
             </h1>
-            <p className="text-muted-foreground text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-              {communities.length} komunitas developer aktif tersebar di 4
+            <p className="text-muted-foreground text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-6">
+              {communities.length} komunitas developer aktif dan independen yang tersebar di 4
               kabupaten Pulau Madura.
             </p>
+            <div className="inline-block p-4 rounded-2xl bg-card/80 border border-border/70 backdrop-blur-md max-w-2xl text-xs md:text-sm text-muted-foreground leading-relaxed text-center sm:text-left">
+              <span className="font-semibold text-foreground">Catatan Independensi: </span>
+              Setiap komunitas daerah berdiri secara otonom dan independen. MaduraDev hadir sebagai direktori bersama dan ruang kolaborasi terbuka, bukan organisasi penaung atau atasan dari komunitas manapun.
+            </div>
           </motion.div>
         </div>
       </section>

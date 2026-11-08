@@ -1172,7 +1172,7 @@ function drawOfficialFrame(
     ctx.fillStyle = "#FFFFFF";
     ctx.font = `bold ${Math.round(S * 0.02)}px 'Space Grotesk', -apple-system, sans-serif`;
     ctx.textAlign = "left";
-    ctx.fillText("OFFICIAL MEMBER", topX + 195, topY + 36);
+    ctx.fillText("COMMUNITY NETWORK", topX + 195, topY + 36);
 
     ctx.fillStyle = "#38bdf8";
     ctx.font = `600 ${Math.round(S * 0.0135)}px -apple-system, sans-serif`;
@@ -1185,7 +1185,7 @@ function drawOfficialFrame(
 
     ctx.fillStyle = "#38bdf8";
     ctx.font = `bold ${Math.round(S * 0.0145)}px -apple-system, sans-serif`;
-    ctx.fillText("OFFICIAL MEMBER • EKOSISTEM IT MADURA", S / 2, topY + 60);
+    ctx.fillText("JARINGAN KOLABORASI • DEVELOPER MADURA", S / 2, topY + 60);
   }
 
   // Live status green dot on top right inside island
@@ -1224,7 +1224,7 @@ function drawOfficialFrame(
   ctx.fillStyle = "#38bdf8";
   ctx.font = `bold ${Math.round(S * 0.015)}px -apple-system, BlinkMacSystemFont, sans-serif`;
   ctx.textAlign = "left";
-  ctx.fillText("WADAH KOLABORASI DEVELOPER", botX + 36, botY + 38);
+  ctx.fillText("JARINGAN KOLABORASI DEVELOPER", botX + 36, botY + 38);
 
   // Main Headline inside bottom card
   ctx.fillStyle = "#FFFFFF";

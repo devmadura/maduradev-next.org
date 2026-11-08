@@ -1,7 +1,17 @@
 import { useRef } from "react";
 import { useInView, motion } from "motion/react";
 import { Link } from "react-router";
-import { ArrowLeft, ArrowRight, ExternalLink, Globe } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Globe,
+  Sparkles,
+  ShieldCheck,
+  Code2,
+  Users,
+} from "lucide-react";
+import { appleSprings } from "@/lib/springs";
 
 function LinkedinIcon({ className }: { className?: string }) {
   return (
@@ -88,19 +98,24 @@ export default function TeamDetailClient({
   nextMember,
 }: TeamDetailClientProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, amount: 0.15 });
 
   const socialLinks = [
+    member.portfolio && {
+      icon: Globe,
+      url: member.portfolio,
+      label: "Website / Portfolio",
+      primary: true,
+    },
+    member.github && {
+      icon: GithubIcon,
+      url: member.github,
+      label: "GitHub",
+    },
     member.linkedin && {
       icon: LinkedinIcon,
       url: member.linkedin,
       label: "LinkedIn",
-    },
-    member.github && { icon: GithubIcon, url: member.github, label: "GitHub" },
-    member.portfolio && {
-      icon: Globe,
-      url: member.portfolio,
-      label: "Portfolio",
     },
     member.instagram && {
       icon: InstagramIcon,
@@ -111,12 +126,18 @@ export default function TeamDetailClient({
     icon: React.ComponentType<{ className?: string }>;
     url: string;
     label: string;
+    primary?: boolean;
   }[];
 
+  const bioText =
+    member.description && member.description.trim().length > 0
+      ? member.description
+      : `Berkontribusi aktif sebagai ${member.position} dalam pengembangan platform terbuka, edukasi, dan kegiatan kolaborasi teknologi MaduraDev.`;
+
   return (
-    <section className="py-24 bg-background relative overflow-hidden min-h-screen">
-      {/* Dot Grid Background */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+    <section className="py-20 md:py-28 bg-background relative overflow-hidden min-h-screen selection:bg-primary/20">
+      {/* Subtle Dot Grid Pattern */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.045]">
         <div
           className="absolute inset-0"
           style={{
@@ -127,132 +148,212 @@ export default function TeamDetailClient({
         />
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 relative z-10" ref={ref}>
-        {/* Back link */}
+      {/* Ambient Glow Orbs */}
+      <div className="pointer-events-none absolute top-20 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px]" />
+      <div className="pointer-events-none absolute bottom-20 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-[120px]" />
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10" ref={ref}>
+        {/* Top Breadcrumb & Back Action */}
         <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
+          transition={appleSprings.default}
+          className="flex flex-wrap items-center justify-between gap-4 mb-8"
         >
           <Link
             to="/teams"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-12"
+            className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-card/80 hover:bg-muted border border-border/70 text-xs font-bold text-muted-foreground hover:text-foreground backdrop-blur-md transition-all active:scale-[0.97]"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Semua Tim
+            <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <span>Semua Pengelola Inisiatif</span>
           </Link>
+
+          <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground font-medium">
+            <Link to="/teams" className="hover:text-foreground transition-colors">
+              Core Team
+            </Link>
+            <span className="text-border">/</span>
+            <span className="text-foreground font-semibold truncate max-w-[200px]">
+              {member.name}
+            </span>
+          </div>
         </motion.div>
 
-        {/* Main content */}
-        <div className="grid md:grid-cols-[280px_1fr] gap-12 md:gap-16 items-start">
-          {/* Avatar column */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="relative w-full aspect-square max-w-70 rounded-2xl overflow-hidden bg-secondary border border-border/60">
-              {member.avatar_url ? (
-                <img
-                  src={member.avatar_url}
-                  alt={member.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-7xl font-display font-bold text-muted-foreground/30">
-                  {member.name.charAt(0)}
+        {/* Main Profile Glass Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ ...appleSprings.default, delay: 0.06 }}
+          className="relative rounded-[2rem] bg-card/75 dark:bg-card/45 border border-border/70 backdrop-blur-2xl p-6 sm:p-10 md:p-12 editorial-shadow overflow-hidden"
+        >
+          {/* Top Rim Highlight */}
+          <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center md:items-start">
+            {/* Avatar Column */}
+            <div className="md:col-span-5 lg:col-span-4 flex flex-col items-center">
+              <div className="relative w-56 sm:w-64 md:w-full aspect-square rounded-3xl p-1.5 bg-gradient-to-br from-primary/30 via-border/50 to-transparent shadow-xl">
+                <div className="relative w-full h-full rounded-[1.25rem] overflow-hidden bg-secondary border border-background">
+                  {member.avatar_url ? (
+                    <img
+                      src={member.avatar_url}
+                      alt={member.name}
+                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-7xl font-display font-black text-muted-foreground/30">
+                      {member.name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Verified Contributor Pill */}
+              <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border/60 text-[11px] font-semibold text-muted-foreground">
+                <ShieldCheck size={14} className="text-primary shrink-0" />
+                <span>Pengelola Inisiatif MaduraDev</span>
+              </div>
+            </div>
+
+            {/* Identity & Details Column */}
+            <div className="md:col-span-7 lg:col-span-8 space-y-6 text-center md:text-left">
+              <div className="space-y-3">
+                {/* Role Badge */}
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest">
+                  <Sparkles size={12} />
+                  <span>{member.position}</span>
+                </div>
+
+                {/* Member Name */}
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-black tracking-tight text-foreground leading-[1.08]">
+                  {member.name}
+                </h1>
+              </div>
+
+              {/* Bio / Statement */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-muted/35 border border-border/50 text-left">
+                <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                  {bioText}
+                </p>
+              </div>
+
+              {/* Role Context Mini Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                <div className="p-3.5 rounded-2xl bg-background/60 border border-border/60 flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Code2 size={17} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Peran & Fokus
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5">
+                      {member.position} • Platform Terbuka
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-background/60 border border-border/60 flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Users size={17} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Jejaring Kolaborasi
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-foreground mt-0.5">
+                      Komunitas Teknologi Madura
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social & Portfolio Links */}
+              {socialLinks.length > 0 && (
+                <div className="pt-2 space-y-3">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Tautan & Media Sosial
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+                    {socialLinks.map(({ icon: Icon, url, label, primary }) => (
+                      <a
+                        key={label}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`group inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-[0.97] ${
+                          primary
+                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90"
+                            : "bg-background hover:bg-primary/10 text-foreground hover:text-primary border border-border/70 hover:border-primary/40"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span>{label}</span>
+                        <ArrowUpRight className="w-3.5 h-3.5 opacity-60 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
-          </motion.div>
-
-          {/* Info column */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {/* Position */}
-            <div className="inline-block px-3 py-1 bg-primary/10 text-primary rounded text-[11px] font-bold uppercase tracking-widest mb-4">
-              {member.position}
-            </div>
-
-            {/* Name */}
-            <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-foreground mb-6">
-              {member.name}
-            </h1>
-
-            {/* Description */}
-            {member.description && (
-              <p className="text-muted-foreground leading-relaxed text-lg mb-8 max-w-lg">
-                {member.description}
-              </p>
-            )}
-
-            {/* Portfolio link */}
-            {member.portfolio && (
-              <a
-                href={member.portfolio}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-lg font-medium text-sm hover:opacity-90 transition-opacity mb-8"
-              >
-                <Globe className="w-4 h-4" />
-                Kunjungi Website
-                <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-              </a>
-            )}
-
-            {/* Social links */}
-            {socialLinks.length > 0 && (
-              <div className="flex items-center gap-3">
-                {socialLinks.map(({ icon: Icon, url, label }) => (
-                  <a
-                    key={label}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-muted/30 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary hover:border-primary/30"
-                  >
-                    <Icon className="h-4 w-4" />
-                  </a>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Navigation */}
-        <motion.div
-          className="flex justify-between items-center mt-20 pt-8 border-t border-border/60"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          {prevMember ? (
-            <Link
-              to={`/teams/${prevMember.slug}`}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {prevMember.name}
-            </Link>
-          ) : (
-            <div />
-          )}
-          {nextMember ? (
-            <Link
-              to={`/teams/${nextMember.slug}`}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {nextMember.name}
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          ) : (
-            <div />
-          )}
+          </div>
         </motion.div>
+
+        {/* Prev / Next Member Switcher Cards */}
+        {(prevMember || nextMember) && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+            transition={{ ...appleSprings.default, delay: 0.14 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8"
+          >
+            {prevMember ? (
+              <Link
+                to={`/teams/${prevMember.slug}`}
+                className="group flex items-center justify-between gap-4 p-5 rounded-2xl bg-card/70 hover:bg-card border border-border/60 hover:border-primary/40 backdrop-blur-xl transition-all active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-muted group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary flex items-center justify-center shrink-0 transition-colors">
+                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Sebelumnya
+                    </p>
+                    <p className="text-sm font-bold text-foreground group-hover:text-primary truncate transition-colors mt-0.5">
+                      {prevMember.name}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ) : (
+              <div className="hidden sm:block" />
+            )}
+
+            {nextMember ? (
+              <Link
+                to={`/teams/${nextMember.slug}`}
+                className="group flex items-center justify-end gap-4 p-5 rounded-2xl bg-card/70 hover:bg-card border border-border/60 hover:border-primary/40 backdrop-blur-xl transition-all active:scale-[0.98] text-right"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Selanjutnya
+                    </p>
+                    <p className="text-sm font-bold text-foreground group-hover:text-primary truncate transition-colors mt-0.5">
+                      {nextMember.name}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-muted group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary flex items-center justify-center shrink-0 transition-colors">
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              </Link>
+            ) : (
+              <div className="hidden sm:block" />
+            )}
+          </motion.div>
+        )}
       </div>
     </section>
   );

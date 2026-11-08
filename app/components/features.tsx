@@ -8,7 +8,7 @@ export default function BentoGrid() {
         {/* Section Header */}
         <div className="text-center mb-20">
           <h2 className="font-label text-sm font-bold uppercase tracking-[0.3em] text-primary mb-4">
-            The Collective Identity
+            Open Collaborative Space
           </h2>
           <h3 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
             Kenapa MaduraDev?
@@ -92,28 +92,28 @@ export default function BentoGrid() {
             <div className="grid grid-cols-3 divide-x divide-white/10 w-full items-center relative z-10">
               <div className="text-center px-1 sm:px-4">
                 <p className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
-                  1.1M
+                  840+
                 </p>
                 <p className="font-label text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider sm:tracking-widest text-primary/70 mt-1">
-                  Followers
+                  Members
                 </p>
               </div>
 
               <div className="text-center px-1 sm:px-4">
                 <p className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
-                  50+
+                  4
                 </p>
                 <p className="font-label text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider sm:tracking-widest text-primary/70 mt-1">
-                  Projects
+                  Kabupaten
                 </p>
               </div>
 
               <div className="text-center px-1 sm:px-4">
                 <p className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
-                  12
+                  100%
                 </p>
                 <p className="font-label text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider sm:tracking-widest text-primary/70 mt-1">
-                  Events/Year
+                  Terbuka
                 </p>
               </div>
             </div>

@@ -238,11 +238,11 @@ export default function MapCommunityMadura({
         <div className="mb-10 lg:mb-16 text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full mb-6">
             <span className="font-label text-[10px] font-bold uppercase tracking-widest">
-              Our Network
+              Community Directory
             </span>
             <span className="w-1 h-1 rounded-full bg-primary" />
             <span className="font-label text-[10px] font-bold uppercase tracking-widest">
-              Madura Developer
+              Madura Island
             </span>
           </div>
           <h2 className="text-4xl md:text-6xl font-black text-foreground leading-[1] tracking-tighter mb-4 font-display">
@@ -250,7 +250,7 @@ export default function MapCommunityMadura({
             <span className="text-primary italic">Banyak Komunitas.</span>
           </h2>
           <p className="text-muted-foreground text-lg md:text-xl leading-relaxed">
-            Penyebaran developer aktif di 4 kabupaten Pulau Madura.
+            Peta direktori komunitas teknologi independen dan otonom yang tersebar di Pulau Madura.
           </p>
         </div>
 
@@ -273,12 +273,14 @@ export default function MapCommunityMadura({
               <div className="p-3 bg-primary/10 rounded-xl border border-primary/20">
                 <Map className="text-primary" size={24} />
               </div>
-              <h3 className="text-foreground font-black text-xl font-display leading-tight">
-                Area <br />
-                <span className="text-muted-foreground text-sm font-bold font-sans">
-                  Komunitas
-                </span>
-              </h3>
+              <div>
+                <h3 className="text-foreground font-black text-xl font-display leading-tight">
+                  Direktori <br />
+                  <span className="text-muted-foreground text-sm font-bold font-sans">
+                    Komunitas Daerah
+                  </span>
+                </h3>
+              </div>
             </div>
 
             <div className="flex flex-col gap-4 flex-1">

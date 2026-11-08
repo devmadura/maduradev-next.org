@@ -99,15 +99,18 @@ export default function TeamClient({ members }: TeamClientProps) {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full mb-6">
               <span className="text-[10px] font-bold uppercase tracking-widest">
-                Our Base
+                Pengelola Inisiatif
               </span>
             </div>
             <h3 className="text-4xl md:text-5xl font-black tracking-tight mb-4 font-display">
               Core <span className="text-primary italic">Team</span>
             </h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Orang-orang di balik layar yang menjalankan roda komunitas
-              MaduraDev dan menggerakkan inisiatif-inisiatif teknologi lokal.
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Relawan dan developer di balik pengelolaan platform serta inisiatif kolaborasi terbuka MaduraDev.
+            </p>
+            <p className="text-xs text-muted-foreground/80 leading-relaxed p-3 rounded-xl bg-card/60 border border-border/50">
+              <span className="font-semibold text-foreground">Catatan: </span>
+              Tim inti ini berfokus pada pengembangan platform dan kegiatan MaduraDev. Komunitas daerah mitra tetap berjalan secara otonom di bawah koordinasi tim independennya masing-masing.
             </p>
           </motion.div>
           <div className="hidden md:flex gap-2">

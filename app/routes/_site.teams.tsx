@@ -8,24 +8,24 @@ export const meta = () => [
   {
     name: "description",
     content:
-      "Tim inti MaduraDev: para developer dan kontributor aktif yang membangun komunitas developer di Pulau Madura.",
+      "Tim pengelola dan kontributor MaduraDev: para relawan dan developer yang menggerakkan platform terbuka, kegiatan, dan inisiatif kolaborasi teknologi di Pulau Madura.",
   },
   {
     name: "keywords",
     content:
-      "core team maduradev, tim developer madura, kontributor maduradev, anggota komunitas madura",
+      "core team maduradev, tim pengelola maduradev, kontributor maduradev, developer madura",
   },
   { property: "og:title", content: "Core Team - MaduraDev" },
   {
     property: "og:description",
-    content: "Kenali tim inti di balik komunitas developer MaduraDev.",
+    content: "Kenali tim pengelola inisiatif dan kontributor platform MaduraDev.",
   },
   { property: "og:type", content: "website" },
   { property: "og:url", content: "https://madura.dev/teams" },
   { property: "og:image", content: "https://madura.dev/image.jpg" },
   { name: "twitter:card", content: "summary_large_image" },
   { name: "twitter:title", content: "Core Team - MaduraDev" },
-  { name: "twitter:description", content: "Kenali tim inti di balik komunitas developer MaduraDev." },
+  { name: "twitter:description", content: "Kenali tim pengelola inisiatif dan kontributor platform MaduraDev." },
   { name: "twitter:image", content: "https://madura.dev/image.jpg" },
   { tagName: "link", rel: "canonical", href: "https://madura.dev/teams" },
 ];
@@ -67,7 +67,7 @@ export default function TeamsPage({ loaderData }: Route.ComponentProps) {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Core Team MaduraDev",
-    description: "Tim inti di balik komunitas developer MaduraDev.",
+    description: "Tim pengelola inisiatif dan platform terbuka MaduraDev.",
     url: "https://madura.dev/teams",
     itemListElement: members.map((m, index) => ({
       "@type": "ListItem",

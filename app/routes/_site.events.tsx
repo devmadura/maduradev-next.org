@@ -103,51 +103,58 @@ export default function EventsPage({ loaderData }: Route.ComponentProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden pt-28 pb-16">
+    <div className="pt-5">
       {/* Schema.org Event List JSON-LD for Google Search Console */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventsItemListJsonLd) }}
       />
 
-      {/* Background Glows */}
-      <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none z-0" />
-      <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-3xl pointer-events-none z-0" />
+      <section className="py-24 bg-background relative overflow-hidden min-h-screen">
+        {/* Dot Grid Background */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
+              backgroundSize: "32px 32px",
+            }}
+          />
+        </div>
 
-      {/* Dot Grid Background */}
-      <div className="fixed inset-0 opacity-5 pointer-events-none z-0">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 2px 2px, #0058be 1px, transparent 0)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 container px-6 max-w-7xl mx-auto space-y-12">
-        {/* Animated Page Header */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={headerVariants}
-          className="max-w-3xl space-y-4"
-        >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">
-            Event Directory
+        <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-12">
+          {/* Section Header (aligned with /teams) */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={headerVariants}
+              className="max-w-xl"
+            >
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full mb-6">
+                <span className="text-[10px] font-bold uppercase tracking-widest">
+                  Event Directory
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 font-display text-foreground">
+                Jelajahi <span className="text-primary italic">Event & Workshop</span>
+              </h1>
+              <p className="text-muted-foreground leading-relaxed">
+                Tingkatkan keahlian coding, ikuti sesi berbagi ilmu teknologi terbaru, dan perluas jejaring kolaborasi bersama para developer di Pulau Madura.
+              </p>
+            </motion.div>
+            <div className="hidden md:flex gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary" />
+              <div className="w-2 h-2 rounded-full bg-border" />
+              <div className="w-2 h-2 rounded-full bg-border" />
+            </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight font-display text-foreground leading-[1.1]">
-            Jelajahi <span className="text-primary italic">Event & Workshop</span>
-          </h1>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed max-w-2xl">
-            Tingkatkan keahlian coding, ikuti bedah buku teknologi terbaru, dan perluas jaringan profesional Anda bersama komunitas pengembang di Madura.
-          </p>
-        </motion.div>
 
-        {/* Event List Component with filters and grids */}
-        <ListEvent events={events} />
-      </div>
+          {/* Event List Component with filters and grids */}
+          <ListEvent events={events} />
+        </div>
+      </section>
     </div>
   );
 }

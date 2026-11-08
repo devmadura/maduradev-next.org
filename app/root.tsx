@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
 } from "react-router";
 import { ThemeProvider } from "@/lib/theme";
+import { NotFoundView } from "./routes/$";
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -114,32 +115,39 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  if (isRouteErrorResponse(error) && error.status === 404) {
+    return (
+      <ThemeProvider>
+        <NotFoundView />
+      </ThemeProvider>
+    );
+  }
+
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
+    message = `Error ${error.status}`;
+    details = error.statusText || details;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold">{message}</h1>
-        <p className="mt-2 text-muted-foreground">{details}</p>
-        {stack && (
-          <pre className="mt-4 w-full overflow-x-auto p-4 text-left text-sm">
-            <code>{stack}</code>
-          </pre>
-        )}
-      </div>
-    </main>
+    <ThemeProvider>
+      <main className="flex min-h-screen items-center justify-center p-4 bg-background text-foreground">
+        <div className="text-center max-w-lg space-y-3">
+          <h1 className="text-4xl font-black font-display">{message}</h1>
+          <p className="text-muted-foreground">{details}</p>
+          {stack && (
+            <pre className="mt-4 w-full overflow-x-auto p-4 text-left text-xs rounded-xl bg-muted border border-border">
+              <code>{stack}</code>
+            </pre>
+          )}
+        </div>
+      </main>
+    </ThemeProvider>
   );
 }

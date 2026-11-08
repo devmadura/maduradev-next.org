@@ -35,7 +35,7 @@ export const meta = () => [
   {
     property: "og:description",
     content:
-      "Komitmen MaduraDev dalam melindungi privasi, keamanan informasi, dan integritas data seluruh anggota komunitas developer Madura.",
+      "Komitmen MaduraDev dalam melindungi privasi, keamanan informasi, dan integritas data pengguna platform serta peserta kegiatan MaduraDev.",
   },
   { property: "og:type", content: "website" },
   { property: "og:url", content: "https://madura.dev/privacy-policy" },
@@ -45,7 +45,7 @@ export const meta = () => [
   {
     name: "twitter:description",
     content:
-      "Pelajari bagaimana MaduraDev melindungi data Anda saat menggunakan platform, mendaftar kegiatan, dan bergabung di komunitas.",
+      "Pelajari bagaimana MaduraDev melindungi data Anda saat menggunakan platform, mendaftar kegiatan, dan berkolaborasi bersama kami.",
   },
   {
     tagName: "link",
@@ -229,15 +229,15 @@ export default function PrivacyPolicyPage() {
               <div className="text-muted-foreground text-sm leading-relaxed space-y-3 pt-2">
                 <p>
                   Selamat datang di <strong className="text-foreground">MaduraDev</strong>. Kami adalah
-                  komunitas nirlaba yang berfokus pada kolaborasi, edukasi, dan percepatan ekosistem
-                  teknologi di empat kabupaten Pulau Madura: Bangkalan, Sampang, Pamekasan, dan Sumenep.
+                  inisiatif jaringan kolaborasi terbuka nirlaba yang berfokus pada edukasi, berbagi pengetahuan, dan
+                  pengembangan talenta teknologi di Pulau Madura.
                 </p>
                 <p>
                   Kebijakan Privasi ini berlaku untuk seluruh layanan digital yang disediakan di bawah domain{" "}
                   <code className="px-1.5 py-0.5 rounded bg-muted text-foreground text-xs font-mono">
                     madura.dev
                   </code>
-                  , termasuk pendaftaran kegiatan meetup/workshop, direktori komunitas daerah, penerbitan
+                  , termasuk pendaftaran kegiatan meetup/workshop, direktori komunitas independen daerah, penerbitan
                   tiket elektronik, artikel/media edukatif, serta generator twibbon interaktif.
                 </p>
               </div>
@@ -266,9 +266,9 @@ export default function PrivacyPolicyPage() {
                     tiket dan verifikasi kehadiran.
                   </li>
                   <li>
-                    <strong className="text-foreground">Akun Administrator Komunitas:</strong> Bagi pengurus
-                    resmi cabang daerah, kami menyimpan email, nama tampilan, peran, dan kredensial terenkripsi
-                    untuk manajemen konten dan event.
+                    <strong className="text-foreground">Akun Pengelola Platform:</strong> Bagi tim pengelola
+                    dan kontributor resmi platform MaduraDev, kami menyimpan email, nama tampilan, peran, dan kredensial terenkripsi
+                    untuk manajemen konten, media, dan kegiatan.
                   </li>
                   <li>
                     <strong className="text-foreground">Data Log Teknis Terbatas:</strong> Alamat IP secara
@@ -387,9 +387,9 @@ export default function PrivacyPolicyPage() {
                     browser Anda dan server dienkripsi menggunakan protokol TLS 1.3 / HTTPS.
                   </li>
                   <li>
-                    <strong className="text-foreground">Row Level Security (RLS):</strong> Data base kami
-                    menggunakan Supabase PostgreSQL dengan kebijakan RLS ketat. Hanya admin terverifikasi
-                    dengan hak akses regional yang dapat mengelola data peserta kegiatan terkait.
+                    <strong className="text-foreground">Row Level Security (RLS):</strong> Database kami
+                    menggunakan Supabase PostgreSQL dengan kebijakan RLS ketat. Hanya admin pengelola terverifikasi
+                    yang dapat mengelola data peserta kegiatan terkait.
                   </li>
                   <li>
                     <strong className="text-foreground">Retensi Data:</strong> Data peserta acara disimpan

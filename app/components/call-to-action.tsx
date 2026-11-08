@@ -1,4 +1,6 @@
 import { motion } from "motion/react";
+import { Link } from "react-router";
+import { Send } from "lucide-react";
 
 export default function CTABanner() {
   return (
@@ -15,16 +17,19 @@ export default function CTABanner() {
 
         <div className="relative z-10 max-w-2xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter leading-tight">
-            Siap Menjadi Bagian Dari Kami?
+            Siap Berkolaborasi Bersama Kami?
           </h2>
           <p className="text-white/80 text-lg mb-12">
-            Jangan biarkan potensimu berhenti di sini. Bergabunglah dengan
-            ratusan developer Madura lainnya dan bangun masa depan teknologi
-            bersama.
+            Jangan biarkan potensimu berhenti di sini. Terhubung dengan ratusan
+            developer dan pegiat teknologi Madura dalam ruang diskusi terbuka.
           </p>
-          <button className="bg-background text-foreground px-12 py-5 rounded-2xl font-black text-xl hover:bg-background/90 transition-all active:scale-95 shadow-xl">
-            Daftar Komunitas Sekarang
-          </button>
+          <Link
+            to="/telegram"
+            className="inline-flex items-center justify-center gap-3 bg-background text-foreground px-10 md:px-12 py-5 rounded-2xl font-black text-lg md:text-xl hover:bg-background/90 transition-all active:scale-95 shadow-xl"
+          >
+            <Send className="w-5 h-5 text-primary" />
+            <span>Gabung Diskusi Telegram</span>
+          </Link>
           <p className="mt-6 text-white/60 font-label text-xs uppercase tracking-widest">
             Free Forever • No Gatekeeping
           </p>

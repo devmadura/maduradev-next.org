@@ -56,7 +56,7 @@ export const meta = () => [
 const SECTIONS = [
   { id: "penerimaan", label: "1. Penerimaan Ketentuan", icon: Scale },
   { id: "kode-etik", label: "2. Kode Etik Komunitas (Code of Conduct)", icon: HeartHandshake },
-  { id: "akun-pengurus", label: "3. Akun Pengurus & Komunitas", icon: UserCheck },
+  { id: "akun-pengurus", label: "3. Pengelola & Independensi Komunitas", icon: UserCheck },
   { id: "tiket-acara", label: "4. Kegiatan & Ketentuan Tiket", icon: Ticket },
   { id: "twibbon-generator", label: "5. Pemanfaatan Generator Media & Twibbon", icon: Sparkles },
   { id: "hak-cipta", label: "6. Hak Cipta & Lisensi Open Source", icon: Code2 },
@@ -130,7 +130,7 @@ export default function TermsOfServicePage() {
 
             <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-3xl">
               Selamat datang di MaduraDev. Dokumen ini mengatur hak, kewajiban, dan etika interaksi saat Anda mengakses platform{" "}
-              <span className="font-semibold text-foreground">madura.dev</span>, mendaftar event developer, atau berpartisipasi dalam jejaring komunitas di empat kabupaten Madura.
+              <span className="font-semibold text-foreground">madura.dev</span>, mendaftar kegiatan developer, atau berpartisipasi dalam ruang kolaborasi terbuka kami.
             </p>
 
             {/* Apple-style Translucent Highlights Card */}
@@ -277,7 +277,7 @@ export default function TermsOfServicePage() {
               </div>
             </article>
 
-            {/* 3. Akun Pengurus */}
+            {/* 3. Akun Pengurus & Independensi Komunitas */}
             <article
               id="akun-pengurus"
               className="scroll-mt-28 p-6 md:p-8 rounded-3xl bg-card/70 dark:bg-card/40 border border-border/70 backdrop-blur-md space-y-4"
@@ -287,26 +287,26 @@ export default function TermsOfServicePage() {
                   <UserCheck size={18} />
                 </div>
                 <h2 className="text-xl md:text-2xl font-black text-foreground font-display tracking-tight">
-                  3. Akun Pengurus & Komunitas Daerah
+                  3. Pengelola Platform & Independensi Komunitas Daerah
                 </h2>
               </div>
               <div className="text-muted-foreground text-sm leading-relaxed space-y-3 pt-2">
                 <p>
-                  Akses ke dashboard administrasi (
-                  <code className="px-1.5 py-0.5 rounded bg-muted text-foreground text-xs font-mono">
-                    /dashboard
-                  </code>
-                  ) diberikan secara khusus kepada koordinator dan pengurus komunitas terverifikasi di wilayah Pulau Madura:
+                  MaduraDev menghormati penuh otonomi komunitas lokal serta mengatur tata kelola platform sebagai berikut:
                 </p>
-                <ul className="space-y-1.5 list-disc list-inside pl-2">
+                <ul className="space-y-2 list-disc list-inside pl-2">
                   <li>
-                    Pengurus wajib menjaga kerahasiaan kata sandi dan kredensial login mereka masing-masing.
+                    <strong className="text-foreground">Independensi Komunitas Daerah:</strong> Setiap komunitas lokal yang ditampilkan pada halaman direktori berdiri secara otonom dan independen dengan kepengurusannya masing-masing, serta bukan merupakan cabang atau bawahan dari MaduraDev. Komunitas daerah berhak meminta pembaruan informasi atau pencabutan profil dari direktori kapan saja.
                   </li>
                   <li>
-                    Pengurus bertanggung jawab penuh atas seluruh data acara, materi presentasi, atau artikel media yang diterbitkan melalui akun mereka.
+                    <strong className="text-foreground">Akses Pengelola Platform:</strong> Akses ke dashboard administrasi (
+                    <code className="px-1.5 py-0.5 rounded bg-muted text-foreground text-xs font-mono">
+                      /dashboard
+                    </code>
+                    ) digunakan oleh tim pengelola dan kontributor terverifikasi untuk publikasi kegiatan, artikel media, dan pemeliharaan direktori.
                   </li>
                   <li>
-                    Dilarang membagikan atau memindahtangankan akses kredensial dashboard kepada pihak luar tanpa persetujuan Super Admin MaduraDev.
+                    <strong className="text-foreground">Tanggung Jawab Kredensial:</strong> Pengelola wajib menjaga kerahasiaan kredensial login masing-masing dan bertanggung jawab atas keakuratan konten acara atau artikel media yang diterbitkan.
                   </li>
                 </ul>
               </div>

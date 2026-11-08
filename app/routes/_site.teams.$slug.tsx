@@ -11,7 +11,7 @@ export const meta = ({ data, params }: Route.MetaArgs) => {
     : "https://madura.dev/image.jpg";
   const desc = member
     ? `${member.name} - ${member.position} di MaduraDev. ${member.description || ""}`
-    : "Profil anggota tim inti MaduraDev.";
+    : "Profil pengelola dan kontributor MaduraDev.";
   const title = member ? `${member.name} - Core Team MaduraDev` : "Team - MaduraDev";
 
   return [

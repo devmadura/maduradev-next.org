@@ -108,8 +108,7 @@ export default function CommunityPage() {
               Developer Madura
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-6">
-              {communities.length} komunitas developer aktif dan independen yang tersebar di 4
-              kabupaten Pulau Madura.
+              {communities.length} komunitas developer aktif dan independen
             </p>
             <div className="inline-block p-4 rounded-2xl bg-card/80 border border-border/70 backdrop-blur-md max-w-2xl text-xs md:text-sm text-muted-foreground leading-relaxed text-center sm:text-left">
               <span className="font-semibold text-foreground">Catatan Independensi: </span>
